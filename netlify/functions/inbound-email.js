@@ -133,7 +133,7 @@ async function createInterventionFromEmail({ subject, bodyText, fromRaw }){
     valide: false, valideeAt: null, valideePar: null,
     piecesCommandees: false, piecesCommandeesAt: null, piecesCommandeesPar: null,
     clientConfirmation: null, clientProposedDate: null, clientNote: null,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date().toISOString().slice(0,10),
     createdBy: 'email',
   };
 
