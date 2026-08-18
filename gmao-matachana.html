@@ -1058,7 +1058,7 @@ function addMonths(d,n){ const dt=new Date(d); dt.setMonth(dt.getMonth()+n); ret
 function iso(d){ const dt=new Date(d); dt.setMinutes(dt.getMinutes()-dt.getTimezoneOffset()); return dt.toISOString().slice(0,10); }
 function sameDay(a,b){ return iso(a)===iso(b); }
 function fmtDate(d){ return d.toLocaleDateString('fr-FR',{day:'2-digit', month:'2-digit'}); }
-function fmtDateLong(iso_){ if(!iso_) return ''; const d=new Date(iso_+'T00:00:00'); return d.toLocaleDateString('fr-FR',{weekday:'long', day:'2-digit', month:'long'}); }
+function fmtDateLong(iso_){ if(!iso_) return ''; const d=new Date(iso_.slice(0,10)+'T00:00:00'); return d.toLocaleDateString('fr-FR',{weekday:'long', day:'2-digit', month:'long'}); }
 function fmtMonthLabel(d){ return d.toLocaleDateString('fr-FR',{month:'long', year:'numeric'}); }
 function isWeekend(d){ const wd=d.getDay(); return wd===0||wd===6; }
 
@@ -5085,7 +5085,7 @@ function icon(name){
 /* ================= BUREAU VIEW ================= */
 let bureauShowTraitees = false;
 function viewBureau(){
-  const all = state.interventions.filter(i=>i.createdBy==='client' || i.createdBy==='responsable').slice().reverse();
+  const all = state.interventions.filter(i=>i.createdBy==='client' || i.createdBy==='responsable' || i.createdBy==='email').slice().reverse();
   const rouge = all.filter(d=>demandeColor(d)==='rouge');
   const orange = all.filter(d=>demandeColor(d)==='orange');
   const vert = all.filter(d=>demandeColor(d)==='vert');
@@ -5095,6 +5095,8 @@ function viewBureau(){
     const color = demandeColor(d);
     const provenance = d.createdBy==='responsable'
       ? `Signalée par ${escapeHtml(d.signaleePar||'un responsable')} · ${fmtDateLong(d.createdAt)}`
+      : d.createdBy==='email'
+      ? `Reçue par email (automatique) · ${fmtDateLong(d.createdAt)}`
       : `Reçue le ${fmtDateLong(d.createdAt)}`;
     return `
     <div class="card req-card">
