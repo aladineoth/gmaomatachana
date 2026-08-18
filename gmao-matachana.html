@@ -1250,9 +1250,9 @@ async function restoreSession(){
     const raw = await storageAdapter.get(SESSION_KEY, false);
     if(!raw) return;
     const s = JSON.parse(raw);
-    if(s.portal==='client-app' && s.authClientId && client(s.authClientId)){
-      authClientId = s.authClientId; portal = 'client-app';
-    } else if(s.portal==='tech-app' && s.authTechId && tech(s.authTechId)){
+    // Le portail client a été retiré : une session client précédemment enregistrée ne
+    // doit plus jamais être restaurée, même si elle était valide avant ce changement.
+    if(s.portal==='tech-app' && s.authTechId && tech(s.authTechId)){
       authTechId = s.authTechId; portal = 'tech-app';
     } else if(s.portal==='internal-app' && s.authInternalId && internalUser(s.authInternalId)){
       authInternalId = s.authInternalId; portal = 'internal-app';
@@ -1267,6 +1267,7 @@ async function migrateState(){
   if(!state.emailLog) state.emailLog = [];
   if(!state.auditLog) state.auditLog = [];
   if(state.supportEmail===undefined) state.supportEmail = null;
+  if(state.automationEmail===undefined) state.automationEmail = null;
   (state.internalUsers||[]).forEach(u=>{ if(u.email===undefined) u.email = null; });
   if(!state.protocols) state.protocols = JSON.parse(JSON.stringify(MAINTENANCE_PROTOCOLS));
   Object.values(state.protocols).forEach(p=>{
@@ -3961,7 +3962,7 @@ function renderLanding(){
           ${unifiedLoginError? `<div class="login-error">${escapeHtml(unifiedLoginError)}</div>` : ''}
           <button type="submit" class="btn btn-primary btn-block" style="margin-top:14px;">Se connecter</button>
         </form>
-        <div class="field-hint" style="margin-top:14px; text-align:center;">Un identifiant unique pour l'espace client, technicien ou interne — vous êtes redirigé automatiquement vers votre espace.</div>
+        <div class="field-hint" style="margin-top:14px; text-align:center;">Un identifiant unique pour l'espace technicien ou interne — vous êtes redirigé automatiquement vers votre espace.</div>
         <details style="margin-top:16px;">
           <summary style="cursor:pointer; font-size:12.5px; color:var(--ink-soft); font-weight:600;">Identifiants de démonstration</summary>
           <div class="demo-hints" style="margin-top:10px;">
@@ -3989,29 +3990,24 @@ async function bindLanding(){
     const u = document.getElementById('unified-login-username').value;
     const p = document.getElementById('unified-login-password').value;
 
-    let result = await attemptLogin(state.clients, u, p);
+    // Le portail client a été retiré : toute demande client passe désormais par email
+    // (formulaire + QR code) et arrive directement côté bureau. On ne tente donc plus
+    // de connecter un compte client ici — seuls techniciens et personnel interne.
+    let result = await attemptLogin(state.technicians, u, p);
     if(result.reason==='notfound'){
-      result = await attemptLogin(state.technicians, u, p);
-      if(result.reason==='notfound'){
-        result = await attemptLogin(state.internalUsers, u, p);
-        if(result.ok){
-          await saveState();
-          authInternalId = result.account.id; portal='internal-app'; unifiedLoginError='';
-          currentView = allowedViewsFor(result.account.role)[0];
-          logAudit('login_internal', `${result.account.username} (${result.account.role})`);
-          persistSession(); render(); return;
-        }
-      } else if(result.ok){
+      result = await attemptLogin(state.internalUsers, u, p);
+      if(result.ok){
         await saveState();
-        authTechId = result.account.id; portal='tech-app'; unifiedLoginError='';
-        currentTechWeekStart = startOfWeek(new Date());
-        logAudit('login_tech', result.account.username);
+        authInternalId = result.account.id; portal='internal-app'; unifiedLoginError='';
+        currentView = allowedViewsFor(result.account.role)[0];
+        logAudit('login_internal', `${result.account.username} (${result.account.role})`);
         persistSession(); render(); return;
       }
     } else if(result.ok){
       await saveState();
-      authClientId = result.account.id; portal='client-app'; unifiedLoginError='';
-      logAudit('login_client', result.account.username);
+      authTechId = result.account.id; portal='tech-app'; unifiedLoginError='';
+      currentTechWeekStart = startOfWeek(new Date());
+      logAudit('login_tech', result.account.username);
       persistSession(); render(); return;
     }
     await saveState();
@@ -4212,6 +4208,7 @@ function requestFormUrl(machineId){
   const params = new URLSearchParams({
     request: '1', client: cl?.name||'', ville: cl?.ville||'', model: m.model||'', serial: m.serial||'',
   });
+  if(state.automationEmail) params.set('cc', state.automationEmail);
   return `${base}?${params.toString()}`;
 }
 function renderRequestForm(){
@@ -4311,7 +4308,9 @@ Machine à l'arrêt : ${arret?'Oui':'Non'}
 Date d'apparition : ${dateApparition}
 Code alarme : ${alarme}
 Description : ${panne}`;
-  return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const ccEmail = p.get('cc');
+  const ccParam = ccEmail ? `&cc=${encodeURIComponent(ccEmail)}` : '';
+  return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}${ccParam}&body=${encodeURIComponent(body)}`;
 }
 function bindRequestFormEvents(){
   document.getElementById('rf-submit').addEventListener('click', ()=>{
@@ -5132,7 +5131,7 @@ function viewBureau(){
         <div class="lg-item"><span class="lg-dot" style="background:var(--amber)"></span>En cours (n° d'appel attribué)</div>
         <div class="lg-item"><span class="lg-dot" style="background:var(--green)"></span>Traité</div>
       </div>
-      ${(rouge.length+orange.length)? '' : `<div class="empty" style="margin-bottom:18px;">Aucune demande en attente. Les nouvelles demandes déposées depuis l'espace client apparaîtront ici.</div>`}
+      ${(rouge.length+orange.length)? '' : `<div class="empty" style="margin-bottom:18px;">Aucune demande en attente. Les nouvelles demandes reçues par email (formulaire ou QR code) apparaîtront ici.</div>`}
       ${rouge.map(cardHtml).join('')}
       ${orange.map(cardHtml).join('')}
       ${vert.length? `
@@ -8554,6 +8553,13 @@ function adminSectionSecurite(){
         <input type="email" id="support-email-input" value="${escapeHtml(state.supportEmail||'')}" placeholder="${OFFICIAL_SUPPORT_EMAIL}">
         <button class="btn btn-primary btn-sm" id="support-email-save-btn" style="margin-top:10px;">Enregistrer</button>
       </div>
+      <div class="card section-gap" style="padding:18px 20px; margin-top:16px;">
+        <div class="section-title">${icon('inbox')} Adresse de création automatique d'intervention</div>
+        <div class="field-hint" style="margin-top:0;">L'adresse Gmail dédiée surveillée par le script Google (celle qui crée automatiquement l'intervention dans le GMAO). Une fois renseignée, elle est mise en copie de chaque nouvelle demande envoyée via le QR code ou le formulaire — sans rien changer pour vos collègues, qui continuent de voir ces demandes normalement dans leur boîte habituelle.</div>
+        <label style="margin-top:0;">Adresse Gmail dédiée</label>
+        <input type="email" id="automation-email-input" value="${escapeHtml(state.automationEmail||'')}" placeholder="interventions.matachana@gmail.com">
+        <button class="btn btn-primary btn-sm" id="automation-email-save-btn" style="margin-top:10px;">Enregistrer</button>
+      </div>
       <div class="card section-gap" style="padding:18px 20px; margin-top:16px; border:1px solid #E3B23D;">
         <div class="section-title" style="color:#8A6416;">${icon('gear')} Récupération d'urgence</div>
         <div class="field-hint" style="margin-top:0;">Si vos clients, techniciens ou machines ont disparu suite à un incident technique, cette action tente de restaurer les données depuis l'ancienne sauvegarde à document unique (avant la répartition en plusieurs documents) — celle-ci n'est jamais supprimée automatiquement.</div>
@@ -9459,7 +9465,7 @@ function openAddClientModal(){
   const overlay = document.createElement('div'); overlay.className='overlay';
   overlay.innerHTML = `
     <div class="modal">
-      <div class="modal-head"><div><h3>Ajouter un client</h3><p>Crée sa fiche et son compte d'accès à l'espace client</p></div>
+      <div class="modal-head"><div><h3>Ajouter un client</h3><p>Crée sa fiche (coordonnées, machines, contrats) — utilisée pour les demandes par email et les confirmations</p></div>
       <button class="modal-close" id="close-modal">&times;</button></div>
       <div class="modal-body">
         <label>Nom du client</label>
@@ -9481,9 +9487,8 @@ function openAddClientModal(){
           ${state.secteurs.map(s=>`<option value="${s.id}" ${(adminSecteurFilter!=='all' && adminSecteurFilter!=='none' && adminSecteurFilter===s.id)?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}
         </select>
         ${(adminSecteurFilter!=='all' && adminSecteurFilter!=='none')? `<div class="field-hint">Présélectionné d'après le filtre actif : ${escapeHtml(secteurLabel(adminSecteurFilter))}.</div>` : ''}
-        <label>Identifiant de connexion</label>
+        <label>Identifiant interne <span class="muted" style="font-weight:400;">(référence uniquement — ne donne plus accès à une connexion)</span></label>
         <input type="text" id="nc-username" placeholder="généré automatiquement à partir du nom">
-        <div class="field-hint">Mot de passe attribué automatiquement : <strong>${DEMO_PASSWORD}</strong> (modifiable ensuite depuis la liste).</div>
       </div>
       <div class="modal-foot">
         <button class="btn btn-ghost" id="cancel-modal">Annuler</button>
@@ -10197,6 +10202,13 @@ function bindContentEvents(){
       state.supportEmail = val || null;
       await saveState();
       showToast(val ? 'Adresse de support enregistrée' : 'Adresse de support effacée');
+      renderContent();
+    });
+    document.getElementById('automation-email-save-btn')?.addEventListener('click', async ()=>{
+      const val = document.getElementById('automation-email-input').value.trim();
+      state.automationEmail = val || null;
+      await saveState();
+      showToast(val ? "Adresse d'automatisation enregistrée" : "Adresse d'automatisation effacée");
       renderContent();
     });
     document.getElementById('import-backup-btn')?.addEventListener('click', ()=>document.getElementById('import-backup-input').click());
