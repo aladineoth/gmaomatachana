@@ -1151,7 +1151,7 @@ let memoryFallback = {};
    Permet à plusieurs navigateurs/appareils de voir les mêmes données en direct.
    Config Firebase web : ces valeurs ne sont pas secrètes (l'accès est contrôlé par
    les règles de sécurité Firestore, pas par la confidentialité de cette config).
-   ⚠️ Le projet est en "mode test" (règles ouvertes, 30 jours) — à sécuriser avant
+   Attention : le projet est en "mode test" (règles ouvertes, 30 jours) — à sécuriser avant
    tout usage avec de vraies données clients. */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyAtPtFESmL3wWl2F4rqyl2EqeVrclNN4R4",
@@ -1243,7 +1243,7 @@ async function loadState(){
         recoveredFromOldFormat = true;
         await migrateState();
         await saveState(); // réécrit désormais dans les documents séparés
-        showToast('✅ Données récupérées depuis la sauvegarde précédente');
+        showToast('Données récupérées depuis la sauvegarde précédente');
         return;
       }
     }
@@ -1251,7 +1251,7 @@ async function loadState(){
     console.warn('Erreur lors de la lecture des données.', e);
   }
   console.warn('Aucune donnée valide trouvée (bucket "core" et ancien format tous deux absents/invalides) — initialisation des données de démonstration.');
-  showToast('⚠️ Données précédentes introuvables — redémarrage avec les données de démonstration. Contactez le support si vos données devraient être présentes.');
+  showToast('Données précédentes introuvables — redémarrage avec les données de démonstration. Contactez le support si vos données devraient être présentes.');
   state = seedState();
   await migrateState();
   await saveState();
@@ -1271,7 +1271,7 @@ async function saveState(){
           const currentRemote = await storageAdapter.get(bucketStorageKey(bucketName), true);
           if(currentRemote && currentRemote!==prev && !conflictWarned){
             conflictWarned = true;
-            showToast('⚠️ Données modifiées ailleurs entre-temps — vérifiez vos changements');
+            showToast('Données modifiées ailleurs entre-temps — vérifiez vos changements');
             setTimeout(()=>{ conflictWarned=false; }, 5000);
           }
         }
@@ -1280,14 +1280,14 @@ async function saveState(){
       if(result && result.ok && !result.viaFirestore){
         const sizeKo = Math.round(json.length/1024);
         const reason = sizeKo > 500 ? ` — réduisez la taille des pièces jointes (${sizeKo} Ko dans ce lot)` : ' — connexion à la base partagée indisponible';
-        showToast(`⚠️ Synchronisation impossible (${bucketName})${reason}. Vos changements ne sont enregistrés que sur cet appareil pour l'instant.`);
+        showToast(`Synchronisation impossible (${bucketName})${reason}. Vos changements ne sont enregistrés que sur cet appareil pour l'instant.`);
       } else if(!result || !result.ok){
-        showToast(`⚠️ Échec de la sauvegarde (${bucketName})`);
+        showToast(`Échec de la sauvegarde (${bucketName})`);
       }
       lastStateSnapshots[bucketName] = json;
     }
   }
-  catch(e){ console.error('Erreur de sauvegarde', e); showToast('⚠️ Échec de la sauvegarde des données'); }
+  catch(e){ console.error('Erreur de sauvegarde', e); showToast('Échec de la sauvegarde des données'); }
 }
 
 /* ---------------- session (garder la session ouverte) ----------------
@@ -1508,7 +1508,7 @@ async function sendConfirmationEmail(iv){
   };
   state.emailLog.push(email);
   await saveState();
-  showToast(`📧 Email de confirmation envoyé à ${cl.email}`);
+  showToast(`Email de confirmation envoyé à ${cl.email}`);
 }
 function currentInternalUser(){ return (portal==='internal-app') ? internalUser(authInternalId) : null; }
 function canValidate(){ const me = currentInternalUser(); return !!me && (me.role==='admin' || me.role==='responsable' || me.role==='coordinateur'); }
@@ -4201,7 +4201,7 @@ function viewTechScan(){
       </div>
 
       ${mine.length ? `
-        <div class="section-title" style="font-size:13.5px;">📌 Vos interventions sur cette machine</div>
+        <div class="section-title" style="font-size:13.5px;">${icon('pin')} Vos interventions sur cette machine</div>
         ${mine.map(iv=>techScanIvCard(iv, true)).join('')}
       ` : ''}
 
@@ -4321,7 +4321,7 @@ function renderRequestForm(){
 
           <div id="rf-error" style="color:#B4562F; font-size:12px; margin-top:10px; display:none;">Merci de décrire la panne avant d'envoyer.</div>
 
-          <button id="rf-submit" style="width:100%; margin-top:18px; padding:13px; background:#12313F; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer;">✉️ Envoyer la demande par email</button>
+          <button id="rf-submit" style="width:100%; margin-top:18px; padding:13px; background:#12313F; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">${icon('mail')} Envoyer la demande par email</button>
           <div style="font-size:11px; color:#8A96A0; margin-top:8px; text-align:center;">Ouvre votre application mail habituelle — vous validez l'envoi vous-même.</div>
         </div>
       </div>
@@ -4571,7 +4571,7 @@ function viewTechWeek(){
                   ${iv.priorite==='urgente'?'<div style="color:#B23B3B; font-weight:700; font-size:11px; margin-top:4px;">URGENT</div>':''}
                   ${iv.enSuspens? `<div style="color:#8A2E2A; font-size:11px; margin-top:4px; font-weight:700;">⏸ En suspens</div>` : ''}
                   ${lvl==='ok'? `<div style="color:var(--green); font-size:11px; margin-top:4px; font-weight:600;">✓ Pièces commandées</div>` : ''}
-                  ${lvl==='urgent'||lvl==='retard'? `<div style="color:#B23B3B; font-size:11px; margin-top:4px; font-weight:600;">⚠️ Pièces à commander</div>` : ''}
+                  ${lvl==='urgent'||lvl==='retard'? `<div style="color:#B23B3B; font-size:11px; margin-top:4px; font-weight:600;">${icon('warning')} Pièces à commander</div>` : ''}
                 </div>`;
             }).join('') : `<div class="helper-note">Aucune intervention ce jour.</div>`}
           </div>`;
@@ -5025,7 +5025,7 @@ function renderTopbar(){
   }[currentView];
   tb.innerHTML = `<div><h1>${meta.h}</h1><p>${meta.p}</p></div>
     <div class="global-search-wrap">
-      <input type="text" id="global-search-input" placeholder="🔍 Client, machine, n° de série, n° d'appel...">
+      <input type="text" id="global-search-input" placeholder="Client, machine, n° de série, n° d'appel...">
       <div class="global-search-results" id="global-search-results" style="display:none;"></div>
     </div>
     <span class="logout-link mobile-topbar-logout" id="internal-logout-mobile" title="Se déconnecter">${icon('logout')}</span>`;
@@ -5146,6 +5146,12 @@ function icon(name){
     mail:`<svg ${s}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>`,
     'check-circle':`<svg ${s}><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>`,
     pause:`<svg ${s}><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>`,
+    bell:`<svg ${s}><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>`,
+    pin:`<svg ${s}><path d="M12 17v5"/><path d="M5 9a7 7 0 1 1 14 0c0 4-3 6-7 12-4-6-7-8-7-12Z"/></svg>`,
+    clipboard:`<svg ${s}><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M9 11h6M9 15h6"/></svg>`,
+    edit:`<svg ${s}><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
+    palm:`<svg ${s}><path d="M12 22V13"/><path d="M12 13c-3-4-8-3-10-1 3 2 6 2 10 1Z"/><path d="M12 13c3-4 8-3 10-1-3 2-6 2-10 1Z"/><path d="M12 13c-1-4 1-7 3-9-1 4-1 7-3 9Z"/></svg>`,
+    search:`<svg ${s}><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`,
   };
   return map[name]||'';
 }
@@ -6001,7 +6007,7 @@ function viewPlanning(readOnly){
     if(!due.length) return '';
     return `
     <div class="card section-gap" style="padding:14px 14px 10px; margin-top:16px; border-color:#B23B3B;">
-      <div class="section-title" style="font-size:13.5px; color:#B23B3B;">🔧 Pièces à remplacer (périodicité)</div>
+      <div class="section-title" style="font-size:13.5px; color:#B23B3B;">${icon('wrench')} Pièces à remplacer (périodicité)</div>
       ${due.map(a=>{
         const cl = client(a.machine.clientId);
         return `
@@ -6092,7 +6098,7 @@ function viewPlanning(readOnly){
       <div style="min-width:0; display:${hideGantt?'none':'flex'}; flex-direction:column; min-height:0;">
         ${pendingPlacementIvId ? (()=>{
           const iv = state.interventions.find(i=>i.id===pendingPlacementIvId);
-          return iv ? `<div class="placement-banner">📌 « ${escapeHtml(cellLabel(iv))} » sélectionnée — cliquez une case du planning pour la placer <button type="button" class="btn btn-ghost btn-sm" id="cancel-placement-btn" style="margin-left:auto;">Annuler</button></div>` : '';
+          return iv ? `<div class="placement-banner">${icon('pin')} « ${escapeHtml(cellLabel(iv))} » sélectionnée — cliquez une case du planning pour la placer <button type="button" class="btn btn-ghost btn-sm" id="cancel-placement-btn" style="margin-left:auto;">Annuler</button></div>` : '';
         })() : ''}
         <div class="month-nav">
           ${(!readOnly && backlogCollapsed) ? `<button class="btn btn-ghost btn-sm" id="expand-backlog-btn">▶ Afficher « À planifier »</button>` : ''}
@@ -6161,7 +6167,7 @@ function jobCardHtml(iv){
       <div class="serial" style="font-size:10.5px;">${escapeHtml(iv.serial)}</div>
       <div class="jc-panne">${escapeHtml(iv.panne)}</div>
       <div class="jc-foot"><span>${typeLabel(iv.type)}${iv.numeroAppel?(' · N° '+escapeHtml(iv.numeroAppel)):''}</span>${iv.priorite==='urgente'?'<span style="color:#B23B3B; font-weight:700;">URGENT</span>':''}</div>
-      ${isSelected? `<div class="jc-selected-hint">📌 Sélectionnée — cliquez une case du planning pour la placer</div>` : ''}
+      ${isSelected? `<div class="jc-selected-hint">${icon('pin')} Sélectionnée — cliquez une case du planning pour la placer</div>` : ''}
     </div>`;
 }
 function typeLabel(t){
@@ -6282,7 +6288,7 @@ function openJobDetail(id, onChange){
 
         ${iv.status==='terminee' && iv.attentePriseEnCompte ? `
           <div class="confirm-banner attente" style="margin-top:14px;">
-            <div style="font-weight:700; font-size:12.5px; margin-bottom:4px; color:#8A5A0E;">✅ Terminée par le technicien — en attente de prise en compte</div>
+            <div style="font-weight:700; font-size:12.5px; margin-bottom:4px; color:#8A5A0E;">${icon('check-circle')} Terminée par le technicien — en attente de prise en compte</div>
             ${showPriseEnCompte ? `<button class="btn btn-primary btn-sm" id="prise-en-compte-btn" style="margin-top:6px;">Valider la prise en compte</button>` : `<div style="font-size:12px; color:var(--ink-soft);">Le responsable ou le coordinateur doit valider la prise en compte.</div>`}
           </div>
         ` : ''}
@@ -6360,7 +6366,7 @@ function openJobDetail(id, onChange){
             ` : canOrderParts ? `
               <button class="btn btn-primary btn-sm" id="order-parts-btn" style="margin-top:10px;">Marquer les pièces commandées</button>
             ` : `
-              <div class="helper-note" style="margin-top:8px; color:${partsAlertLevel(iv)==='urgent'||partsAlertLevel(iv)==='retard'?'#B23B3B':'var(--ink-faint)'};">⚠️ Pièces pas encore commandées.</div>
+              <div class="helper-note" style="margin-top:8px; color:${partsAlertLevel(iv)==='urgent'||partsAlertLevel(iv)==='retard'?'#B23B3B':'var(--ink-faint)'};">${icon('warning')} Pièces pas encore commandées.</div>
             `}
           </div>
         ` : ''}
@@ -6605,10 +6611,10 @@ function viewMaintenancesPlanifiees(){
     <div style="max-width:980px;">
       ${upcomingDue.length ? `
         <div class="dash-section">
-          <div class="dash-section-title">🔔 Échéances à venir non planifiées <span class="muted" style="font-weight:400;">(prochains 90 jours, calculées automatiquement depuis la dernière MP1)</span></div>
+          <div class="dash-section-title">${icon('bell')} Échéances à venir non planifiées <span class="muted" style="font-weight:400;">(prochains 90 jours, calculées automatiquement depuis la dernière MP1)</span></div>
           ${upcomingDue.map(u=>`
             <div class="dash-alert-row" style="align-items:center;">
-              <span>${u.overdue?'⚠️ ':''}<strong>${escapeHtml(u.cl?.name||'—')}</strong> — ${escapeHtml(u.m.model)} <span class="muted">(${escapeHtml(u.m.serial)})</span></span>
+              <span>${u.overdue?icon('warning')+' ':''}<strong>${escapeHtml(u.cl?.name||'—')}</strong> — ${escapeHtml(u.m.model)} <span class="muted">(${escapeHtml(u.m.serial)})</span></span>
               <span style="display:flex; align-items:center; gap:10px;">
                 <span style="color:${u.overdue?'#B23B3B':'#C4780F'}; font-weight:600;">${fmtDateLong(u.due)}</span>
                 <button class="btn btn-primary btn-sm" data-plan-due-machine="${u.m.id}" data-plan-due-client="${u.cl?.id||''}" data-plan-due-date="${u.due}">Planifier maintenant</button>
@@ -6963,7 +6969,7 @@ function openCongeReviewModal(requestId, refresh){
       <div class="modal-head"><div><h3>${escapeHtml(r.technicianName)}</h3><p>${CONGE_TYPE_LABELS[r.type]}</p></div>
       <button class="modal-close" id="close-modal">&times;</button></div>
       <div class="modal-body">
-        ${r.status==='accordee'? `<div class="confirm-banner" style="border-color:var(--green);"><strong style="color:#2E6B3E;">✅ Accordée</strong> — du ${fmtDateLong(r.dateDebutConfirmee||r.dateDebut)} au ${fmtDateLong(r.dateFinConfirmee||r.dateFin)} inclus</div>` : ''}
+        ${r.status==='accordee'? `<div class="confirm-banner" style="border-color:var(--green);"><strong style="color:#2E6B3E;">${icon('check-circle')} Accordée</strong> — du ${fmtDateLong(r.dateDebutConfirmee||r.dateDebut)} au ${fmtDateLong(r.dateFinConfirmee||r.dateFin)} inclus</div>` : ''}
         ${r.status==='refusee'? `<div class="confirm-banner contre" style="border-color:var(--red);"><strong style="color:#8A2E2A;">Refusée</strong> — ${escapeHtml(r.motifRefus||'')}</div>` : ''}
         <div class="req-meta">Du <strong>${fmtDateLong(r.dateDebut)}</strong> au <strong>${fmtDateLong(r.dateFin)}</strong> inclus — ${joursOuvres(r.dateDebut,r.dateFin)} jour(s) ouvré(s)</div>
         <div class="req-meta">${r.demiJournee? `Demi-journée à partir de ${r.heure||'—'}` : 'Journée complète'}</div>
@@ -7005,7 +7011,7 @@ function openCongeReviewModal(requestId, refresh){
   });
 }
 function generateCongePDF(r){
-  if(!window.jspdf || !window.jspdf.jsPDF){ showToast("⚠️ Générateur PDF indisponible (hors ligne ?)"); return null; }
+  if(!window.jspdf || !window.jspdf.jsPDF){ showToast("Générateur PDF indisponible (hors ligne ?)"); return null; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
   const pageW = 210, marginX = 15;
@@ -7218,7 +7224,7 @@ async function sliceImageForPdf(dataUrl, naturalWidth, naturalHeight, maxDisplay
   return slices;
 }
 async function generateExpensePDF(report){
-  if(!window.jspdf || !window.jspdf.jsPDF){ showToast("⚠️ Générateur PDF indisponible (hors ligne ?)"); return null; }
+  if(!window.jspdf || !window.jspdf.jsPDF){ showToast("Générateur PDF indisponible (hors ligne ?)"); return null; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'landscape' });
   const pageW = 297, marginX = 10;
@@ -7769,7 +7775,7 @@ function openExpenseEditModal(reportId, ownerType, forceWeekStart){
           </div>
         ` : ''}
         ${r.status==='rejetee'? `<div class="confirm-banner contre" style="border-color:var(--red);"><strong style="color:#8A2E2A;">Rejetée</strong> — ${escapeHtml(r.rejectionReason||'')}</div>` : ''}
-        ${r.status==='traitee'? `<div class="confirm-banner" style="border-color:var(--green); display:flex; align-items:center; justify-content:space-between; gap:12px;"><span><strong style="color:#2E6B3E;">✅ Traitée par la comptabilité</strong> — le PDF final est disponible.</span><button class="btn btn-primary btn-sm" id="download-expense-pdf-btn-tech-top">${icon('inbox')} Télécharger le PDF</button></div>` : ''}
+        ${r.status==='traitee'? `<div class="confirm-banner" style="border-color:var(--green); display:flex; align-items:center; justify-content:space-between; gap:12px;"><span><strong style="color:#2E6B3E;">${icon('check-circle')} Traitée par la comptabilité</strong> — le PDF final est disponible.</span><button class="btn btn-primary btn-sm" id="download-expense-pdf-btn-tech-top">${icon('inbox')} Télécharger le PDF</button></div>` : ''}
         <label style="margin-top:0;">Kilométrage en début de semaine</label>
         <input type="number" min="0" id="expense-km" ${canEdit?'':'disabled'} value="${r.kmDebutSemaine||0}">
         ${r.days.map((d,idx)=>dayCard(d,idx)).join('')}
@@ -8212,9 +8218,9 @@ async function analyzeCtImport(){
     previewBox.innerHTML = `
       <div class="card" style="padding:14px 16px; background:#FBFAF6;">
         <div style="font-weight:700; margin-bottom:8px;">Aperçu de l'import</div>
-        <div class="helper-note" style="margin:0 0 4px;">✅ ${results.toUpdate.length} machine(s) à mettre à jour</div>
+        <div class="helper-note" style="margin:0 0 4px;">${icon('check-circle')} ${results.toUpdate.length} machine(s) à mettre à jour</div>
         <div class="helper-note" style="margin:0 0 4px;">↺ ${results.unchanged} déjà à jour (inchangée(s))</div>
-        <div class="helper-note" style="margin:0 0 4px; color:${results.noMatch?'#B23B3B':'inherit'};">⚠️ ${results.noMatch} numéro(s) de série non trouvé(s)</div>
+        <div class="helper-note" style="margin:0 0 4px; color:${results.noMatch?'#B23B3B':'inherit'};">${icon('warning')} ${results.noMatch} numéro(s) de série non trouvé(s)</div>
         <button class="btn btn-primary btn-sm" id="import-ct-confirm-btn" style="margin-top:10px;">Confirmer la mise à jour</button>
       </div>
     `;
@@ -8276,11 +8282,11 @@ async function analyzeSchedImport(){
     previewBox.innerHTML = `
       <div class="card" style="padding:14px 16px; background:#FBFAF6;">
         <div style="font-weight:700; margin-bottom:8px;">Aperçu du planning à appliquer</div>
-        <div class="helper-note" style="margin:0 0 4px;">✅ ${results.toCreate.length} intervention(s) à créer, déjà planifiées (date + technicien)</div>
+        <div class="helper-note" style="margin:0 0 4px;">${icon('check-circle')} ${results.toCreate.length} intervention(s) à créer, déjà planifiées (date + technicien)</div>
         <div class="helper-note" style="margin:0 0 4px;">Répartition : ${Object.entries(techCounts).map(([n,c])=>`${escapeHtml(n)} (${c})`).join(', ')}</div>
         <div class="helper-note" style="margin:0 0 4px;">↺ ${results.alreadyPlanned} déjà planifiée(s) à une date proche (ignorée(s))</div>
-        <div class="helper-note" style="margin:0 0 4px; color:${results.noMachine.length?'#B23B3B':'inherit'};">⚠️ ${results.noMachine.length} numéro(s) de série non trouvé(s)</div>
-        <div class="helper-note" style="margin:0 0 4px; color:${results.noTech.length?'#B23B3B':'inherit'};">⚠️ ${results.noTech.length} technicien(s) non trouvé(s) par prénom</div>
+        <div class="helper-note" style="margin:0 0 4px; color:${results.noMachine.length?'#B23B3B':'inherit'};">${icon('warning')} ${results.noMachine.length} numéro(s) de série non trouvé(s)</div>
+        <div class="helper-note" style="margin:0 0 4px; color:${results.noTech.length?'#B23B3B':'inherit'};">${icon('warning')} ${results.noTech.length} technicien(s) non trouvé(s) par prénom</div>
         <button class="btn btn-primary btn-sm" id="import-sched-confirm-btn" style="margin-top:10px;">Confirmer et planifier</button>
         ${results.noTech.length ? `<details style="margin-top:10px;"><summary style="cursor:pointer; font-size:12px; color:var(--ink-soft);">Voir les techniciens non trouvés</summary><div style="margin-top:8px; font-size:11.5px;">${[...new Set(results.noTech.map(r=>r.technicien))].map(t=>escapeHtml(t)).join(', ')}</div></details>` : ''}
       </div>
@@ -8368,9 +8374,9 @@ async function analyzeRevImport(){
     previewBox.innerHTML = `
       <div class="card" style="padding:14px 16px; background:#FBFAF6;">
         <div style="font-weight:700; margin-bottom:8px;">Aperçu de l'import</div>
-        <div class="helper-note" style="margin:0 0 4px;">✅ ${results.toCreate.length} machine(s) avec une échéance à importer</div>
+        <div class="helper-note" style="margin:0 0 4px;">${icon('check-circle')} ${results.toCreate.length} machine(s) avec une échéance à importer</div>
         <div class="helper-note" style="margin:0 0 4px;">↺ ${results.alreadyImported} déjà présente(s) au planning (ignorée(s), pas de doublon créé)</div>
-        <div class="helper-note" style="margin:0 0 4px; color:${results.noMatch.length?'#B23B3B':'inherit'};">⚠️ ${results.noMatch.length} numéro(s) de série non trouvé(s) dans le parc machines</div>
+        <div class="helper-note" style="margin:0 0 4px; color:${results.noMatch.length?'#B23B3B':'inherit'};">${icon('warning')} ${results.noMatch.length} numéro(s) de série non trouvé(s) dans le parc machines</div>
         <button class="btn btn-primary btn-sm" id="import-rev-confirm-btn" style="margin-top:10px;">Confirmer l'import</button>
         ${results.noMatch.length ? `
           <details style="margin-top:10px;"><summary style="cursor:pointer; font-size:12px; color:var(--ink-soft);">Voir les numéros non trouvés</summary>
@@ -8530,7 +8536,7 @@ function generateQrPrintSheet(){
         .qr-card-client{font-size:11px; color:#8A96A0; margin-top:2px;}
         @media print{ .qr-toolbar{display:none;} body{padding:0;} }
       </style></head><body>
-      <div class="qr-toolbar"><button onclick="window.print()">🖶 Imprimer</button><span>${items.length} QR code${items.length>1?'s':''} — vérifiez que chaque code est lisible avant de coller les étiquettes.</span></div>
+      <div class="qr-toolbar"><button onclick="window.print()">Imprimer</button><span>${items.length} QR code${items.length>1?'s':''} — vérifiez que chaque code est lisible avant de coller les étiquettes.</span></div>
       <div class="qr-grid">${cardsHtml}</div>
       </body></html>`);
     w.document.close();
@@ -8580,7 +8586,7 @@ function generateQrPrintSheet(){
       .dymo-address .dymo-client{font-size:7.5pt; color:#5C6B71; margin-top:1mm; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
       @media print{ .qr-toolbar{display:none;} }
     </style></head><body>
-    <div class="qr-toolbar"><button onclick="window.print()">🖶 Imprimer sur la Dymo</button><span>${items.length} étiquette${items.length>1?'s':''} — dans la fenêtre d'impression, choisissez l'imprimante Dymo LabelWriter et vérifiez que le format de papier correspond à l'étiquette chargée.</span></div>
+    <div class="qr-toolbar"><button onclick="window.print()">Imprimer sur la Dymo</button><span>${items.length} étiquette${items.length>1?'s':''} — dans la fenêtre d'impression, choisissez l'imprimante Dymo LabelWriter et vérifiez que le format de papier correspond à l'étiquette chargée.</span></div>
     ${labelsHtml}
     </body></html>`);
   w.document.close();
@@ -8596,7 +8602,7 @@ function adminSectionStock(){
         </div>
         <div class="field-hint" style="margin-top:0;">Quand un technicien indique une pièce comme remplacée sur une intervention, le stock correspondant (même référence) est automatiquement décrémenté.</div>
         ${lowStock.length ? `
-          <div class="helper-note" style="color:#B23B3B; font-weight:600; margin-top:12px;">⚠️ ${lowStock.length} référence(s) sous le seuil d'alerte : ${lowStock.map(s=>escapeHtml(s.designation)).join(', ')}</div>
+          <div class="helper-note" style="color:#B23B3B; font-weight:600; margin-top:12px;">${icon('warning')} ${lowStock.length} référence(s) sous le seuil d'alerte : ${lowStock.map(s=>escapeHtml(s.designation)).join(', ')}</div>
         ` : ''}
         <table style="margin-top:14px;">
           <thead><tr><th>Réf.</th><th>Désignation</th><th>Quantité</th><th>Seuil d'alerte</th><th>Secteur</th><th></th></tr></thead>
@@ -8826,10 +8832,10 @@ async function recoverFromOldBackup(){
     resultBox.innerHTML = `
       <div class="card" style="padding:12px 14px; background:#FBFAF6;">
         <div style="font-weight:700; margin-bottom:6px;">Ancienne sauvegarde trouvée</div>
-        <div class="helper-note" style="margin:0;">👤 ${parsed.clients.length} client(s) — actuellement : ${state.clients.length}</div>
-        <div class="helper-note" style="margin:0;">🔧 ${parsed.technicians.length} technicien(s) — actuellement : ${state.technicians.length}</div>
-        <div class="helper-note" style="margin:0;">🛠️ ${parsed.machines.length} machine(s) — actuellement : ${state.machines.length}</div>
-        <div class="helper-note" style="margin:0;">📋 ${parsed.interventions.length} intervention(s) — actuellement : ${state.interventions.length}</div>
+        <div class="helper-note" style="margin:0;">${icon('user')} ${parsed.clients.length} client(s) — actuellement : ${state.clients.length}</div>
+        <div class="helper-note" style="margin:0;">${icon('wrench')} ${parsed.technicians.length} technicien(s) — actuellement : ${state.technicians.length}</div>
+        <div class="helper-note" style="margin:0;">${icon('gear')} ${parsed.machines.length} machine(s) — actuellement : ${state.machines.length}</div>
+        <div class="helper-note" style="margin:0;">${icon('clipboard')} ${parsed.interventions.length} intervention(s) — actuellement : ${state.interventions.length}</div>
         <button class="btn btn-danger btn-sm" id="confirm-recover-btn" style="margin-top:10px;">Confirmer la restauration (remplace les données actuelles)</button>
       </div>
     `;
@@ -8842,7 +8848,7 @@ async function recoverFromOldBackup(){
       await migrateState();
       await saveState();
       logAudit('recovery', `Restauration depuis l'ancienne sauvegarde — ${parsed.clients.length} clients récupérés`);
-      showToast('✅ Données restaurées avec succès');
+      showToast('Données restaurées avec succès');
       renderContent();
     });
   }catch(e){
@@ -8937,7 +8943,7 @@ function clientsTreeHtml(visibleClients){
                   </div>
                   <span class="pill ${c.contractType}" style="flex:none;">${CONTRACTS[c.contractType]?.label||c.contractType}</span>
                   <span class="pill" style="background:#EEE; color:var(--ink-soft); flex:none;">${machines.length} machine${machines.length>1?'s':''}</span>
-                  <button type="button" class="btn btn-ghost btn-sm" data-edit-client-tree="${c.id}" style="flex:none;" title="Modifier ce client">✎</button>
+                  <button type="button" class="btn btn-ghost btn-sm" data-edit-client-tree="${c.id}" style="flex:none;" title="Modifier ce client">${icon('edit')}</button>
                 </div>
                 ${clientOpen ? `<div class="orgchart-wrap">
                   ${machines.length? `
@@ -9232,7 +9238,7 @@ function adminSectionToggl(){
       </div>
       <div class="card section-gap" style="padding:18px 20px; margin-top:16px;">
         <div class="section-title">${icon('calendar')} Intégration Toggl Plan (connexion à votre compte réel)</div>
-        <div class="field-hint" style="margin-bottom:14px; color:#B23B3B;">⚠️ Ces identifiants restent uniquement dans le navigateur de la personne qui les saisit ici — ils ne sont jamais enregistrés dans les données partagées ni dans le fichier de l'application. Si le Client Secret a déjà été partagé ailleurs (ex. dans une conversation), régénérez-le sur developers.plan.toggl.com après vos tests.</div>
+        <div class="field-hint" style="margin-bottom:14px; color:#B23B3B;">${icon('warning')} Ces identifiants restent uniquement dans le navigateur de la personne qui les saisit ici — ils ne sont jamais enregistrés dans les données partagées ni dans le fichier de l'application. Si le Client Secret a déjà été partagé ailleurs (ex. dans une conversation), régénérez-le sur developers.plan.toggl.com après vos tests.</div>
         <label style="margin-top:0;">Client ID</label>
         <input type="text" id="toggl-client-id" value="${escapeHtml(creds.clientId||'')}" placeholder="Ex. a1B2c3D4e5-">
         <label>Client Secret</label>
@@ -9429,12 +9435,12 @@ async function analyzeTogglAssign(){
     previewBox.innerHTML = `
       <div class="card" style="padding:14px 16px; background:#FBFAF6;">
         <div style="font-weight:700; margin-bottom:8px;">Aperçu de l'attribution</div>
-        <div class="helper-note" style="margin:0 0 4px;">✅ ${results.toAssign.length} intervention(s) qui recevront un technicien</div>
-        <div class="helper-note" style="margin:0 0 4px;">👤 ${trulyNewTechs.length} nouveau(x) technicien(s) à créer : ${trulyNewTechs.map(m=>escapeHtml(m.name)).join(', ')||'—'}</div>
-        <div class="helper-note" style="margin:0 0 4px;">🏖️ ${results.excludedLeave} congé(s)/RTT exclu(s)</div>
+        <div class="helper-note" style="margin:0 0 4px;">${icon('check-circle')} ${results.toAssign.length} intervention(s) qui recevront un technicien</div>
+        <div class="helper-note" style="margin:0 0 4px;">${icon('user')} ${trulyNewTechs.length} nouveau(x) technicien(s) à créer : ${trulyNewTechs.map(m=>escapeHtml(m.name)).join(', ')||'—'}</div>
+        <div class="helper-note" style="margin:0 0 4px;">${icon('palm')} ${results.excludedLeave} congé(s)/RTT exclu(s)</div>
         <div class="helper-note" style="margin:0 0 4px; color:${results.ambiguous.length?'#C4780F':'inherit'};">ℹ️ ${results.ambiguous.length} cas ambigu(s) — plusieurs interventions possibles, laissés inchangés</div>
-        <div class="helper-note" style="margin:0 0 4px; color:${results.noIntervention.length?'#B23B3B':'inherit'};">⚠️ ${results.noIntervention.length} tâche(s) sans intervention correspondante dans le GMAO</div>
-        <div class="helper-note" style="margin:0 0 4px; color:${results.noClientMatch.length?'#B23B3B':'inherit'};">⚠️ ${results.noClientMatch.length} tâche(s) sans client reconnu</div>
+        <div class="helper-note" style="margin:0 0 4px; color:${results.noIntervention.length?'#B23B3B':'inherit'};">${icon('warning')} ${results.noIntervention.length} tâche(s) sans intervention correspondante dans le GMAO</div>
+        <div class="helper-note" style="margin:0 0 4px; color:${results.noClientMatch.length?'#B23B3B':'inherit'};">${icon('warning')} ${results.noClientMatch.length} tâche(s) sans client reconnu</div>
         <button class="btn btn-primary btn-sm" id="toggl-assign-confirm-btn" style="margin-top:10px;" ${results.toAssign.length===0?'disabled':''}>Confirmer l'attribution de ${results.toAssign.length} technicien(s)</button>
         ${(results.ambiguous.length || results.noIntervention.length || results.noClientMatch.length) ? `
           <details style="margin-top:10px;"><summary style="cursor:pointer; font-size:12px; color:var(--ink-soft);">Voir le détail des cas non traités</summary>
@@ -9536,11 +9542,11 @@ async function analyzeTogglImport(){
     previewBox.innerHTML = `
       <div class="card" style="padding:14px 16px; background:#FBFAF6;">
         <div style="font-weight:700; margin-bottom:8px;">Aperçu de l'import</div>
-        <div class="helper-note" style="margin:0 0 4px;">✅ ${results.toImport.length} intervention(s) prêtes à créer</div>
-        <div class="helper-note" style="margin:0 0 4px;">👤 ${trulyNewTechs.length} nouveau(x) technicien(s) à créer : ${trulyNewTechs.map(m=>escapeHtml(m.name)).join(', ')||'—'}</div>
-        <div class="helper-note" style="margin:0 0 4px;">🏖️ ${results.excludedLeave} congé(s)/RTT exclu(s) automatiquement</div>
-        <div class="helper-note" style="margin:0 0 4px; color:${results.noClientMatch.length?'#B23B3B':'inherit'};">⚠️ ${results.noClientMatch.length} tâche(s) sans client reconnu (non importées)</div>
-        <div class="helper-note" style="margin:0 0 4px; color:${results.noTechMatch.length?'#B23B3B':'inherit'};">⚠️ ${results.noTechMatch.length} tâche(s) sans technicien reconnu (non importées)</div>
+        <div class="helper-note" style="margin:0 0 4px;">${icon('check-circle')} ${results.toImport.length} intervention(s) prêtes à créer</div>
+        <div class="helper-note" style="margin:0 0 4px;">${icon('user')} ${trulyNewTechs.length} nouveau(x) technicien(s) à créer : ${trulyNewTechs.map(m=>escapeHtml(m.name)).join(', ')||'—'}</div>
+        <div class="helper-note" style="margin:0 0 4px;">${icon('palm')} ${results.excludedLeave} congé(s)/RTT exclu(s) automatiquement</div>
+        <div class="helper-note" style="margin:0 0 4px; color:${results.noClientMatch.length?'#B23B3B':'inherit'};">${icon('warning')} ${results.noClientMatch.length} tâche(s) sans client reconnu (non importées)</div>
+        <div class="helper-note" style="margin:0 0 4px; color:${results.noTechMatch.length?'#B23B3B':'inherit'};">${icon('warning')} ${results.noTechMatch.length} tâche(s) sans technicien reconnu (non importées)</div>
         ${results.toImport.some(r=>r.machineAmbiguous) ? `<div class="helper-note" style="color:#C4780F;">ℹ️ Certains clients ont plusieurs machines — la première a été choisie par défaut, à vérifier après import.</div>` : ''}
         <button class="btn btn-primary btn-sm" id="toggl-import-confirm-btn" style="margin-top:10px;">Confirmer l'import de ${results.toImport.length} intervention(s)</button>
         ${(results.noClientMatch.length || results.noTechMatch.length) ? `
@@ -9970,7 +9976,7 @@ function openMachineFicheModal(machineId){
   let garantieBanner = '';
   if(m.garantieFin){
     const daysLeft = Math.round((new Date(m.garantieFin+'T00:00:00') - new Date(today+'T00:00:00'))/86400000);
-    if(daysLeft < 0) garantieBanner = `<div class="confirm-banner contre" style="border-color:var(--red);"><strong style="color:#8A2E2A;">⚠️ Garantie/contrat expiré</strong> depuis le ${fmtDateLong(m.garantieFin)}</div>`;
+    if(daysLeft < 0) garantieBanner = `<div class="confirm-banner contre" style="border-color:var(--red);"><strong style="color:#8A2E2A;">${icon('warning')} Garantie/contrat expiré</strong> depuis le ${fmtDateLong(m.garantieFin)}</div>`;
     else if(daysLeft <= 60) garantieBanner = `<div class="confirm-banner" style="border-color:#E3B23D;"><strong style="color:#8A6416;">⏳ Garantie/contrat se termine le ${fmtDateLong(m.garantieFin)}</strong> (dans ${daysLeft} jour${daysLeft>1?'s':''})</div>`;
   }
   const totalInterventions = history.length;
@@ -10005,7 +10011,7 @@ function openMachineFicheModal(machineId){
         <div class="card" style="padding:14px 16px; margin-top:10px; background:#FBFAF6; display:flex; gap:16px; align-items:center;">
           <img src="${qrCodeImageUrl(requestFormUrl(m.id), 140)}" alt="QR code signalement" width="120" height="120" style="border-radius:8px; background:#fff; padding:4px; flex:none;">
           <div style="min-width:0;">
-            <div style="font-weight:700; font-size:13px; margin-bottom:4px;">✉️ QR code — Signaler une panne</div>
+            <div style="font-weight:700; font-size:13px; margin-bottom:4px; display:flex; align-items:center; gap:6px;">${icon('mail')} QR code — Signaler une panne</div>
             <div class="muted" style="font-size:11.5px; line-height:1.4;">À coller à côté du précédent, pour le client. Ouvre un petit formulaire à remplir (pas besoin de connexion) — le client complète les blancs, puis envoie par email en un clic. Client, machine et n° de série déjà pré-remplis.</div>
             <a href="${qrCodeImageUrl(requestFormUrl(m.id), 600)}" download="qr-panne-${(m.serial||m.id).replace(/[^a-zA-Z0-9-]/g,'_')}.png" class="btn btn-ghost btn-sm" style="margin-top:8px; display:inline-block; text-decoration:none;">Télécharger ce QR code</a>
           </div>
