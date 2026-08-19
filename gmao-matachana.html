@@ -395,8 +395,10 @@
   .gantt-techname .tname{font-weight:600; font-size:10.5px; color:var(--tg-text); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;}
   .gantt-techname .tname .muted{color:var(--tg-text-soft) !important; font-size:9.5px;}
   .gantt-daybg{border-right:1px solid var(--tg-border); border-bottom:1px solid var(--tg-border); background:var(--tg-bg); transition:background .1s ease; position:relative;}
-  .gantt-daybg::after{content:''; position:absolute; left:4px; right:4px; top:50%; border-top:1px dashed transparent; pointer-events:none;}
-  .gantt-daybg:hover::after{border-top-color:var(--tg-border);}
+  .gantt-daybg::after{content:''; position:absolute; left:3px; right:3px; top:50%; border-top:1px dashed var(--tg-border); pointer-events:none; opacity:.7;}
+  .gantt-daybg .slot-hint{position:absolute; left:3px; font-size:7px; font-weight:700; color:var(--tg-border); letter-spacing:.3px; pointer-events:none; text-transform:uppercase;}
+  .gantt-daybg .slot-hint.top{top:2px;}
+  .gantt-daybg .slot-hint.bottom{bottom:2px;}
   .gantt-daybg.dragover-upper{background:linear-gradient(to bottom, var(--tg-accent-soft) 0 50%, var(--tg-bg) 50% 100%);}
   .gantt-daybg.dragover-lower{background:linear-gradient(to bottom, var(--tg-bg) 0 50%, var(--tg-accent-soft) 50% 100%);}
   .gantt-daybg.weekend{background:#0A1D26;}
@@ -5921,7 +5923,7 @@ function viewPlanning(readOnly){
         </div>`;
         ganttDays.forEach((d,i)=>{
           for(let laneIdx=0; laneIdx<laneCount; laneIdx++){
-            cellsHtml += `<div class="gantt-daybg ${isWeekend(d)?'weekend':''} ${i===todayIdx?'today-col':''}" data-tech="${t.id}" data-date="${iso(d)}" data-lane="${laneIdx}" style="grid-column:${2+i}; grid-row:${rowStart+laneIdx};"></div>`;
+            cellsHtml += `<div class="gantt-daybg ${isWeekend(d)?'weekend':''} ${i===todayIdx?'today-col':''}" data-tech="${t.id}" data-date="${iso(d)}" data-lane="${laneIdx}" style="grid-column:${2+i}; grid-row:${rowStart+laneIdx};"><span class="slot-hint top">M</span><span class="slot-hint bottom">AM</span></div>`;
           }
         });
       });
