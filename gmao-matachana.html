@@ -433,6 +433,23 @@
   .dash-alert-row:last-child{border-bottom:none;}
   .dash-empty{color:var(--ink-faint); font-size:12.5px; padding:8px 0;}
 
+  /* ---- vue Demandes : tableau Kanban de tri ---- */
+  .kanban-board{display:grid; grid-template-columns:repeat(5, minmax(200px,1fr)); gap:12px; align-items:start;}
+  @media (max-width:1100px){ .kanban-board{grid-template-columns:repeat(5, 240px); overflow-x:auto; padding-bottom:8px;} }
+  .kanban-col{background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; min-width:0;}
+  .kanban-col-head{padding:11px 13px; border-top:3px solid; font-weight:700; font-size:12.5px; display:flex; justify-content:space-between; align-items:center; background:#FBFAF6;}
+  .kanban-col-count{font-family:var(--font-mono); font-weight:600; color:var(--ink-faint); font-size:11.5px;}
+  .kanban-col-body{padding:9px; display:flex; flex-direction:column; gap:8px; max-height:calc(100vh - 260px); overflow-y:auto;}
+  .kanban-card{background:var(--panel); border:1px solid var(--border); border-radius:9px; padding:9px 11px; cursor:pointer; transition:box-shadow .12s ease, transform .1s ease;}
+  .kanban-card:hover{box-shadow:0 3px 10px rgba(20,35,43,.12); transform:translateY(-1px);}
+  .kanban-card-top{display:flex; align-items:center; gap:6px; margin-bottom:3px;}
+  .kanban-card-dot{width:7px; height:7px; border-radius:50%; flex:none;}
+  .kanban-card-client{font-weight:700; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .kanban-card-sub{font-size:11px; color:var(--ink-soft); line-height:1.4; margin-bottom:5px;}
+  .kanban-card-meta{display:flex; gap:6px; align-items:center; font-size:10.5px; color:var(--ink-faint); flex-wrap:wrap;}
+  .kanban-slot-badge{background:#E3EEF3; color:#2C6E91; border-radius:999px; padding:1px 7px; font-weight:600;}
+  .kanban-empty{color:var(--ink-faint); font-size:11.5px; text-align:center; padding:14px 0;}
+
   /* ---- refonte tableau de bord (maquette v2) ---- */
   .dash2-tiles{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-bottom:16px;}
   .dash2-tile{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:15px 17px 15px 20px; position:relative; overflow:hidden;}
@@ -1298,6 +1315,7 @@ async function migrateState(){
   if(!state.emailLog) state.emailLog = [];
   if(!state.auditLog) state.auditLog = [];
   if(state.supportEmail===undefined) state.supportEmail = null;
+  state.interventions.forEach(iv=>{ if(iv.plannedSlot===undefined) iv.plannedSlot = null; });
   if(state.automationEmail===undefined) state.automationEmail = null;
   (state.internalUsers||[]).forEach(u=>{ if(u.email===undefined) u.email = null; });
   if(!state.protocols) state.protocols = JSON.parse(JSON.stringify(MAINTENANCE_PROTOCOLS));
@@ -4881,9 +4899,9 @@ function bindInternalLogin(){
 
 /* ================= INTERNAL SHELL ================= */
 function allowedViewsFor(role){
-  if(role==='admin') return ['dashboard','bureau','planning','admin','notes_frais','hotline','maintenances_planifiees'];
-  if(role==='responsable') return ['dashboard','planning','notes_frais','mes_notes_frais','demandes_conge','maintenances_planifiees'];
-  if(role==='coordinateur') return ['dashboard','planning','notes_frais','maintenances_planifiees'];
+  if(role==='admin') return ['dashboard','demandes','bureau','planning','admin','notes_frais','hotline','maintenances_planifiees'];
+  if(role==='responsable') return ['dashboard','demandes','planning','notes_frais','mes_notes_frais','demandes_conge','maintenances_planifiees'];
+  if(role==='coordinateur') return ['dashboard','demandes','planning','notes_frais','maintenances_planifiees'];
   if(role==='magasin') return ['magasin'];
   if(role==='directeur_technique') return ['notes_frais'];
   if(role==='comptabilite') return ['notes_frais'];
@@ -4936,6 +4954,7 @@ function renderInternalShell(){
         ${navHasOverview? `<div class="nav-group-label">Vue d'ensemble</div>` : ''}
         ${allowed.includes('dashboard')? `<div class="nav-item ${currentView==='dashboard'?'active':''}" data-view="dashboard">${icon('gear')} Tableau de bord</div>` : ''}
         ${navHasOps? `<div class="nav-group-label">Opérations</div>` : ''}
+        ${allowed.includes('demandes')? `<div class="nav-item ${currentView==='demandes'?'active':''}" data-view="demandes">${icon('inbox')} Demandes ${pendingDemandes?`<span class="badge">${pendingDemandes}</span>`:''}</div>` : ''}
         ${allowed.includes('bureau')? `<div class="nav-item ${currentView==='bureau'?'active':''}" data-view="bureau">${icon('inbox')} Bureau ${pendingDemandes?`<span class="badge">${pendingDemandes}</span>`:''}</div>` : ''}
         ${allowed.includes('planning')? `<div class="nav-item ${currentView==='planning'?'active':''}" data-view="planning">${icon('calendar')} Planning ${pendingPlanning?`<span class="badge">${pendingPlanning}</span>`:''}</div>` : ''}
         ${allowed.includes('maintenances_planifiees')? `<div class="nav-item ${currentView==='maintenances_planifiees'?'active':''}" data-view="maintenances_planifiees">${icon('wrench')} Maintenances planifiées</div>` : ''}
@@ -4986,6 +5005,7 @@ function renderTopbar(){
   const meta = {
     dashboard:{h:"Tableau de bord", p:"Vue d'ensemble de l'activité, des délais et de la charge de l'équipe."},
     bureau:{h:"Bureau — Traitement des demandes", p:"Attribuez un n° d'appel puis créez l'intervention pour chaque demande client."},
+    demandes:{h:"Demandes", p:"Vue d'ensemble du parcours d'une demande, de la réception jusqu'à la clôture."},
     planning:{h:"Planning technique", p:"Glissez-déposez les interventions sur la ligne de temps, ajustez leur durée."},
     admin:{h:"Clients, contrats &amp; parc machines", p:"Gérez les fiches clients, leurs accès, leur contrat et leurs équipements."},
     magasin:{h:"Maintenances préventives planifiées", p:"Vue de consultation — préparez les pièces des prochaines interventions."},
@@ -5095,6 +5115,7 @@ function renderContent(){
   else if(currentView==='demandes_conge') c.innerHTML = viewDemandesConge();
   else if(currentView==='maintenances_planifiees') c.innerHTML = viewMaintenancesPlanifiees();
   else if(currentView==='hotline') c.innerHTML = viewHotlineInternal();
+  else if(currentView==='demandes') c.innerHTML = viewDemandesKanban();
   bindContentEvents();
 }
 
@@ -5882,12 +5903,12 @@ function viewPlanning(readOnly){
     const draggableAttr = (!readOnly && !isSecondaryRow) ? 'draggable="true"' : '';
     cellsHtml += `
       <div class="gantt-bar ${statusClass} ${urgentClass} ${termClass} ${suspClass} ${isSecondaryRow?'gantt-bar-secondary':''}" ${draggableAttr} data-iv="${iv.id}"
-           style="grid-column:${2+startIdx} / ${2+endIdx+1}; grid-row:${row}; border-left:4px solid ${clientAccentColor(iv.clientId)};" title="${escapeHtml(cellLabel(iv))} — ${STATUS_COLOR_LABELS[statusKey]}${iv.numeroAppel?(' — N° '+escapeHtml(iv.numeroAppel)):''}${iv.enSuspens?' — EN SUSPENS: '+escapeHtml(iv.suspensRaison||''):''} — ${escapeHtml(iv.panne)}${isSecondaryRow?' (technicien en renfort)':''}">
+           style="grid-column:${2+startIdx} / ${2+endIdx+1}; grid-row:${row}; border-left:4px solid ${clientAccentColor(iv.clientId)};" title="${escapeHtml(cellLabel(iv))} — ${STATUS_COLOR_LABELS[statusKey]}${iv.plannedSlot?(' — '+SLOT_LABELS[iv.plannedSlot]):''}${iv.numeroAppel?(' — N° '+escapeHtml(iv.numeroAppel)):''}${iv.enSuspens?' — EN SUSPENS: '+escapeHtml(iv.suspensRaison||''):''} — ${escapeHtml(iv.panne)}${isSecondaryRow?' (technicien en renfort)':''}">
         ${iv.valide? `<span class="validated-check" title="Validée — client averti">✓</span>` : ''}
         ${pendingClient? `<span class="pending-client-badge" title="${iv.clientConfirmation==='contre_proposition'?'Le client propose une autre date':'En attente de réponse du client'}">${icon('calendar')}</span>` : ''}
         ${laneCount>1? `<span class="lane-badge" title="Intervention ${laneIdx+1} sur ${laneCount} ce jour">${laneIdx+1}</span>` : ''}
         <span class="gb-client"><span class="st-dot"></span>${escapeHtml(cellLabel(iv))}</span>
-        <span class="gb-serial">${escapeHtml(iv.serial)}</span>
+        <span class="gb-serial">${iv.plannedSlot==='matin'?'☀ ':iv.plannedSlot==='apres-midi'?'🌗 ':''}${escapeHtml(iv.serial)}</span>
         ${readOnly?'':`<span class="resize-handle" data-resize="${iv.id}"></span>`}
       </div>`;
     });
@@ -6158,6 +6179,17 @@ function openJobDetail(id, onChange){
         ${iv.numeroAppel? `<div class="helper-note" style="margin-top:10px;">N° d'appel : <span class="serial">${escapeHtml(iv.numeroAppel)}</span></div>`:''}
         <div class="helper-note" style="margin-top:${iv.numeroAppel?'0':'10px'};">Technicien${ivAllTechnicianIds(iv).length>1?'s':''} : <strong>${ivAllTechnicianIds(iv).length? ivAllTechnicianIds(iv).map(id=>escapeHtml(tech(id)?.name||'—')).join(', ') : '—'}</strong></div>
         <div class="helper-note">Du <strong>${iv.plannedDate? fmtDateLong(iv.plannedDate):'—'}</strong> au <strong>${iv.plannedEndDate? fmtDateLong(iv.plannedEndDate):'—'}</strong></div>
+        ${iv.technicianId && iv.plannedDate && iv.status!=='terminee' ? `
+          <div style="margin-top:8px;">
+            <label style="margin-top:0; font-size:11.5px;">Créneau</label>
+            <select id="iv-slot-select" style="width:auto; min-width:180px;">
+              <option value="" ${!iv.plannedSlot?'selected':''}>Non précisé</option>
+              <option value="matin" ${iv.plannedSlot==='matin'?'selected':''}>Matin</option>
+              <option value="apres-midi" ${iv.plannedSlot==='apres-midi'?'selected':''}>Après-midi</option>
+              <option value="journee" ${iv.plannedSlot==='journee'?'selected':''}>Journée entière</option>
+            </select>
+          </div>
+        ` : ''}
         ${iv.piecesNecessaires && !showPartsSection? `<div class="helper-note">Pièces : ${escapeHtml(iv.piecesNecessaires)}</div>`:''}
         ${iv.notesBureau? `<div class="helper-note">Notes bureau : ${escapeHtml(iv.notesBureau)}</div>`:''}
         ${canValidate() ? `
@@ -6335,6 +6367,12 @@ function openJobDetail(id, onChange){
   overlay.querySelector('#close-modal').onclick=close;
   overlay.querySelector('#close-modal-2').onclick=close;
   overlay.addEventListener('click', e=>{ if(e.target===overlay) close(); });
+  overlay.querySelector('#iv-slot-select')?.addEventListener('change', async (e)=>{
+    iv.plannedSlot = e.target.value || null;
+    await saveState();
+    showToast('Créneau mis à jour');
+    refresh();
+  });
   overlay.querySelector('#validate-for-client-btn')?.addEventListener('click', async ()=>{
     await validateMaintenanceForClient(iv.id);
     close(); refresh();
@@ -6604,6 +6642,76 @@ async function validateMaintenanceForClient(ivId){
 }
 
 /* ================= TABLEAU DE BORD ================= */
+/* ================= VUE DEMANDES — TRI KANBAN (À qualifier → À planifier → Planifié → En cours → Terminé) ================= */
+const SLOT_LABELS = { matin:'Matin', 'apres-midi':'Après-midi', journee:'Journée entière' };
+const KANBAN_COLUMNS = [
+  { key:'qualifier', label:'À qualifier', color:'#d03b3b' },
+  { key:'planifier', label:'À planifier', color:'#ec835a' },
+  { key:'planifie', label:'Planifié', color:'#2a78d6' },
+  { key:'encours', label:'En cours', color:'#c9631f' },
+  { key:'termine', label:'Terminé', color:'#0ca30c' },
+];
+function kanbanColumnOf(iv, today){
+  if(iv.status==='demande') return 'qualifier';
+  if(iv.status==='creee') return 'planifier';
+  if(iv.status==='terminee') return 'termine';
+  if(iv.status==='planifiee'){ return (iv.plannedDate && iv.plannedDate<=today) ? 'encours' : 'planifie'; }
+  return 'planifier';
+}
+let kanbanSecteurFilter = 'all';
+function viewDemandesKanban(){
+  const allowedSecteurIds = getAllowedSecteurIds();
+  const today = iso(new Date());
+  let scoped = state.interventions.filter(iv=> !allowedSecteurIds || allowedSecteurIds.includes(client(iv.clientId)?.secteurId));
+  if(kanbanSecteurFilter!=='all') scoped = scoped.filter(iv=>client(iv.clientId)?.secteurId===kanbanSecteurFilter);
+  // ne garde que ce qui date de moins de 60 jours pour "Terminé", sinon la colonne devient interminable
+  const sixtyDaysAgo = iso(addDays(new Date(),-60));
+  scoped = scoped.filter(iv=> iv.status!=='terminee' || (iv.termineeAt||iv.createdAt||'') >= sixtyDaysAgo);
+
+  const grouped = {}; KANBAN_COLUMNS.forEach(c=>grouped[c.key]=[]);
+  scoped.forEach(iv=>{ grouped[kanbanColumnOf(iv, today)].push(iv); });
+  Object.values(grouped).forEach(list=>list.sort((a,b)=>(a.plannedDate||a.createdAt||'').localeCompare(b.plannedDate||b.createdAt||'')));
+
+  const PRIORITE_DOT = { urgente:'#d03b3b', normale:'#B4B2A9' };
+  return `
+    <div style="display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap;">
+      <div class="field-hint" style="margin:0;">Vue d'ensemble du parcours d'une demande, de la réception jusqu'à la clôture. Cliquez une carte pour agir dessus.</div>
+      <select id="kanban-secteur-filter" style="width:auto; margin-left:auto;">
+        <option value="all" ${kanbanSecteurFilter==='all'?'selected':''}>Tous les secteurs</option>
+        ${state.secteurs.filter(s=>!allowedSecteurIds || allowedSecteurIds.includes(s.id)).map(s=>`<option value="${s.id}" ${kanbanSecteurFilter===s.id?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="kanban-board">
+      ${KANBAN_COLUMNS.map(col=>`
+        <div class="kanban-col">
+          <div class="kanban-col-head" style="border-top-color:${col.color};">
+            <span>${col.label}</span><span class="kanban-col-count">${grouped[col.key].length}</span>
+          </div>
+          <div class="kanban-col-body">
+            ${grouped[col.key].length ? grouped[col.key].slice(0,40).map(iv=>{
+              const cl = client(iv.clientId);
+              const t = iv.technicianId ? tech(iv.technicianId) : null;
+              return `
+              <div class="kanban-card" data-kanban-card="${iv.id}" data-kanban-col="${col.key}">
+                <div class="kanban-card-top">
+                  <span class="kanban-card-dot" style="background:${PRIORITE_DOT[iv.priorite]||PRIORITE_DOT.normale};"></span>
+                  <span class="kanban-card-client">${escapeHtml(cl?.name||'—')}</span>
+                </div>
+                <div class="kanban-card-sub">${escapeHtml((iv.panne||typeLabel(iv.type)||'').slice(0,55))}</div>
+                <div class="kanban-card-meta">
+                  ${iv.plannedDate ? `<span>${fmtDate(new Date(iv.plannedDate))}</span>` : ''}
+                  ${t ? `<span>· ${escapeHtml(t.name)}</span>` : ''}
+                  ${iv.plannedSlot ? `<span class="kanban-slot-badge">${SLOT_LABELS[iv.plannedSlot]||iv.plannedSlot}</span>` : ''}
+                </div>
+              </div>`;
+            }).join('') : `<div class="kanban-empty">Rien ici</div>`}
+            ${grouped[col.key].length>40 ? `<div class="kanban-empty">+ ${grouped[col.key].length-40} autre(s)</div>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
 function viewDashboard(){
   const allowedSecteurIds = getAllowedSecteurIds();
   const scoped = state.interventions.filter(iv=> !allowedSecteurIds || allowedSecteurIds.includes(client(iv.clientId)?.secteurId));
@@ -10134,6 +10242,24 @@ function openEditProtocolModal(key){
 
 /* ================= events binding (internal) ================= */
 function bindContentEvents(){
+  if(currentView==='demandes'){
+    document.getElementById('kanban-secteur-filter')?.addEventListener('change', (e)=>{
+      kanbanSecteurFilter = e.target.value; renderContent();
+    });
+    document.querySelectorAll('[data-kanban-card]').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        const id = card.dataset.kanbanCard;
+        const col = card.dataset.kanbanCol;
+        if(col==='qualifier' || col==='planifier'){
+          // ces deux étapes se traitent depuis les écrans dédiés, déjà bien rodés
+          currentView = (col==='qualifier') ? 'bureau' : 'planning';
+          render();
+        } else {
+          openJobDetail(id, renderContent);
+        }
+      });
+    });
+  }
   if(currentView==='bureau'){
     document.querySelectorAll('[data-treat]').forEach(btn=>btn.addEventListener('click', ()=>openTreatModal(btn.dataset.treat)));
     document.querySelectorAll('[data-call-save]').forEach(btn=>btn.addEventListener('click', async ()=>{
