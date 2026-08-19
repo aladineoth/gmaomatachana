@@ -4949,6 +4949,12 @@ function renderInternalShell(){
   const navHasOps = allowed.includes('bureau') || allowed.includes('planning') || allowed.includes('maintenances_planifiees') || allowed.includes('magasin') || allowed.includes('hotline');
   const navHasAdmin = allowed.includes('admin');
   const navHasHR = allowed.includes('notes_frais') || allowed.includes('mes_notes_frais') || allowed.includes('demandes_conge');
+  const adminGroupLabels = { 'Référentiel':'Référentiel', 'Outils':'Outils', 'Administration':'Administration' };
+  function adminNavGroupHtml(groupName){
+    return ADMIN_SECTIONS.filter(s=>s.group===groupName).map(s=>
+      `<div class="nav-item ${currentView==='admin' && adminSection===s.key?'active':''}" data-view="admin" data-admin-target="${s.key}">${icon(s.icon)} ${s.label}</div>`
+    ).join('');
+  }
   return `
     <div class="app-shell">
       <div class="sidebar ${loadSidebarCollapsed()?'collapsed':''}">
@@ -4968,8 +4974,14 @@ function renderInternalShell(){
         ${allowed.includes('maintenances_planifiees')? `<div class="nav-item ${currentView==='maintenances_planifiees'?'active':''}" data-view="maintenances_planifiees">${icon('wrench')} Maintenances planifiées</div>` : ''}
         ${allowed.includes('magasin')? `<div class="nav-item ${currentView==='magasin'?'active':''}" data-view="magasin">${icon('wrench')} Maintenances préventives</div>` : ''}
         ${allowed.includes('hotline')? `<div class="nav-item ${currentView==='hotline'?'active':''}" data-view="hotline">${icon('wrench')} Hotline ${pendingHotline?`<span class="badge">${pendingHotline}</span>`:''}</div>` : ''}
-        ${navHasAdmin? `<div class="nav-group-label">Administration</div>` : ''}
-        ${allowed.includes('admin')? `<div class="nav-item ${currentView==='admin'?'active':''}" data-view="admin">${icon('gear')} Clients &amp; contrats</div>` : ''}
+        ${navHasAdmin? `
+          <div class="nav-group-label">Référentiel</div>
+          ${adminNavGroupHtml('Référentiel')}
+          <div class="nav-group-label">Outils</div>
+          ${adminNavGroupHtml('Outils')}
+          <div class="nav-group-label">Administration</div>
+          ${adminNavGroupHtml('Administration')}
+        ` : ''}
         ${navHasHR? `<div class="nav-group-label">Frais &amp; congés</div>` : ''}
         ${allowed.includes('notes_frais')? `<div class="nav-item ${currentView==='notes_frais'?'active':''}" data-view="notes_frais">${icon('inbox')} Notes de frais ${pendingExpenses?`<span class="badge">${pendingExpenses}</span>`:''}</div>` : ''}
         ${allowed.includes('mes_notes_frais')? `<div class="nav-item ${currentView==='mes_notes_frais'?'active':''}" data-view="mes_notes_frais">${icon('inbox')} Mes notes de frais</div>` : ''}
@@ -4994,7 +5006,10 @@ function bindInternalShellEvents(){
   document.querySelectorAll('.nav-item[data-view]').forEach(el=>{
     el.addEventListener('click', ()=>{
       if(!allowed.includes(el.dataset.view)) return; // garde-fou côté client en plus du rendu conditionnel
-      currentView = el.dataset.view; persistSession(); renderTopbar(); renderContent();
+      currentView = el.dataset.view;
+      if(el.dataset.adminTarget) adminSection = el.dataset.adminTarget;
+      persistSession();
+      render(); // ré-affiche aussi le menu, pour que le bon élément soit bien surligné actif
     });
   });
   document.getElementById('internal-logout').addEventListener('click', ()=>{ authInternalId=null; portal='landing'; clearSession(); render(); });
@@ -5010,12 +5025,25 @@ function bindInternalShellEvents(){
 }
 function renderTopbar(){
   const tb = document.getElementById('topbar');
+  const ADMIN_SECTION_META = {
+    clients:{h:"Clients, contrats &amp; parc machines", p:"Gérez les fiches clients, leurs accès, leur contrat et leurs équipements."},
+    machines:{h:"Parc machines", p:"Toutes les machines installées chez vos clients, tous secteurs confondus."},
+    techniciens:{h:"Techniciens", p:"Gérez les comptes techniciens et leur secteur d'affectation."},
+    secteurs:{h:"Secteurs", p:"Organisez vos zones géographiques et leurs équipes."},
+    stock:{h:"Stock de pièces", p:"Suivez les quantités disponibles et les seuils d'alerte."},
+    'import-revisions':{h:"Import échéances de révision", p:"Importez en masse les échéances de maintenance préventive depuis un fichier."},
+    'qr-print':{h:"Imprimer des QR codes", p:"Générez des QR codes d'accès terrain ou de nouvelle demande, prêts à imprimer."},
+    toggl:{h:"Intégration Toggl Plan", p:"Synchronisez les plannings et rattachez les techniciens depuis Toggl Plan."},
+    comptes:{h:"Comptes internes", p:"Gérez les accès du bureau, des responsables et de l'administration."},
+    protocoles:{h:"Protocoles de maintenance", p:"Définissez les pièces et périodicités par type de contrat."},
+    securite:{h:"Fiabilité &amp; sécurité", p:"Sauvegardes, journal d'activité et réglages de sécurité du GMAO."},
+  };
   const meta = {
     dashboard:{h:"Tableau de bord", p:"Vue d'ensemble de l'activité, des délais et de la charge de l'équipe."},
     bureau:{h:"Bureau — Traitement des demandes", p:"Attribuez un n° d'appel puis créez l'intervention pour chaque demande client."},
     demandes:{h:"Demandes", p:"Vue d'ensemble du parcours d'une demande, de la réception jusqu'à la clôture."},
     planning:{h:"Planning technique", p:"Glissez-déposez les interventions sur la ligne de temps, ajustez leur durée."},
-    admin:{h:"Clients, contrats &amp; parc machines", p:"Gérez les fiches clients, leurs accès, leur contrat et leurs équipements."},
+    admin: ADMIN_SECTION_META[adminSection] || ADMIN_SECTION_META.clients,
     magasin:{h:"Maintenances préventives planifiées", p:"Vue de consultation — préparez les pièces des prochaines interventions."},
     notes_frais:{h:"Notes de frais", p:"Circuit de validation : responsable secteur → bureau → directeur technique → comptabilité."},
     mes_notes_frais:{h:"Mes notes de frais", p:"Vos propres notes de frais hebdomadaires — soumises directement au bureau."},
@@ -7094,7 +7122,7 @@ function downloadCongePDF(r){
 }
 
 /* ================= ADMIN VIEW ================= */
-let adminSection = 'securite';
+let adminSection = 'clients';
 let adminClientSearch = '';
 let adminMachineSearch = '';
 let qrPrintSearch = '';
@@ -8758,21 +8786,8 @@ function viewAdmin(){
     protocoles: adminSectionProtocoles, toggl: adminSectionToggl, stock: adminSectionStock,
     'import-revisions': adminSectionImportRevisions, 'qr-print': adminSectionQrPrint,
   };
-  const fn = sectionFns[adminSection] || adminSectionSecurite;
-  let lastGroup = null;
-  const navHtml = ADMIN_SECTIONS.map(s=>{
-    const groupHeader = s.group!==lastGroup ? `<div class="admin-nav-group-label">${s.group}</div>` : '';
-    lastGroup = s.group;
-    return `${groupHeader}<div class="admin-nav-item ${adminSection===s.key?'active':''}" data-admin-section="${s.key}">${icon(s.icon)} ${s.label}</div>`;
-  }).join('');
-  return `
-    <div class="admin-shell">
-      <div class="admin-nav">
-        ${navHtml}
-      </div>
-      <div class="admin-content">${fn()}</div>
-    </div>
-  `;
+  const fn = sectionFns[adminSection] || adminSectionClients;
+  return `<div class="admin-content admin-content-standalone">${fn()}</div>`;
 }
 function adminSectionSecurite(){
   return `
