@@ -176,10 +176,13 @@
   .app-shell{display:flex; flex:1; min-width:0;}
   .sidebar{
     width:230px; flex:none; background:linear-gradient(180deg,#0e2338,#16324c); color:#c9d6e4;
-    display:flex; flex-direction:column; padding:22px 14px; position:sticky; top:0; height:100vh;
+    display:flex; flex-direction:column; padding:22px 14px 0; position:sticky; top:0; height:100vh;
     transition:width .16s ease, padding .16s ease; overflow:hidden;
   }
-  .sidebar.collapsed{width:60px; padding:22px 8px;}
+  .sidebar-scroll{flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; padding-bottom:10px;}
+  .sidebar-scroll::-webkit-scrollbar{width:5px;}
+  .sidebar-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15); border-radius:3px;}
+  .sidebar.collapsed{width:60px; padding:22px 8px 0;}
   .sidebar.collapsed .brand-tag, .sidebar.collapsed .brand-sub, .sidebar.collapsed .client-id-box,
   .sidebar.collapsed .nav-group-label, .sidebar.collapsed .sidebar-foot, .sidebar.collapsed .brand > span,
   .sidebar.collapsed .brand-logo{display:none;}
@@ -204,7 +207,7 @@
   .nav-item:hover{background:rgba(255,255,255,.06); color:#fff;}
   .nav-item.active{background:rgba(29,122,114,.28); color:#fff; border-color:rgba(29,122,114,.55);}
   .nav-item .badge{margin-left:auto; background:var(--amber); color:#3A2A0B; font-family:var(--font-mono); font-size:10.5px; font-weight:600; padding:1px 6px; border-radius:20px; min-width:18px; text-align:center;}
-  .sidebar-foot{margin-top:auto; padding:10px 8px 2px; font-size:11px; color:#6D8A90; border-top:1px solid rgba(255,255,255,.09); padding-top:14px;}
+  .sidebar-foot{padding:10px 8px 14px; font-size:11px; color:#6D8A90; border-top:1px solid rgba(255,255,255,.09); padding-top:14px; flex:none;}
   .reset-link{color:#8FB7AE; cursor:pointer; text-decoration:underline; text-underline-offset:2px;}
   .client-id-box{background:rgba(255,255,255,.07); border-radius:9px; padding:10px 11px; margin-bottom:16px;}
   .client-id-box .ci-name{font-weight:600; font-size:13px; color:#fff; margin-bottom:2px;}
@@ -4965,6 +4968,7 @@ function renderInternalShell(){
           <div class="ci-name">${escapeHtml(me.name)}</div>
           <div class="ci-contract">${roleLabel}</div>
         </div>
+        <div class="sidebar-scroll">
         ${navHasOverview? `<div class="nav-group-label">Vue d'ensemble</div>` : ''}
         ${allowed.includes('dashboard')? `<div class="nav-item ${currentView==='dashboard'?'active':''}" data-view="dashboard">${icon('gear')} Tableau de bord</div>` : ''}
         ${navHasOps? `<div class="nav-group-label">Opérations</div>` : ''}
@@ -4986,6 +4990,7 @@ function renderInternalShell(){
         ${allowed.includes('notes_frais')? `<div class="nav-item ${currentView==='notes_frais'?'active':''}" data-view="notes_frais">${icon('inbox')} Notes de frais ${pendingExpenses?`<span class="badge">${pendingExpenses}</span>`:''}</div>` : ''}
         ${allowed.includes('mes_notes_frais')? `<div class="nav-item ${currentView==='mes_notes_frais'?'active':''}" data-view="mes_notes_frais">${icon('inbox')} Mes notes de frais</div>` : ''}
         ${allowed.includes('demandes_conge')? `<div class="nav-item ${currentView==='demandes_conge'?'active':''}" data-view="demandes_conge">${icon('calendar')} Demandes de congé ${pendingConges?`<span class="badge">${pendingConges}</span>`:''}</div>` : ''}
+        </div>
         <div class="sidebar-foot">
           <span class="logout-link" id="internal-logout" style="color:#8FB7AE; margin-bottom:8px; display:flex;">${icon('logout')} Se déconnecter</span>
           ${me.role==='admin'? `<span class="reset-link" id="reset-data">Réinitialiser les données</span>` : ''}
