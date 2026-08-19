@@ -135,7 +135,7 @@
   /* ============ LANDING & LOGIN ============ */
   .portal-screen{
     flex:1; min-height:100vh; display:flex; align-items:center; justify-content:center;
-    background:radial-gradient(circle at 20% 15%, #163B49, var(--primary) 55%);
+    background:radial-gradient(circle at 20% 15%, #16324c, #0e2338 55%);
     padding:30px;
   }
   .portal-card{width:100%; max-width:1080px;}
@@ -175,7 +175,7 @@
   /* ============ APP SHELL (client + internal) ============ */
   .app-shell{display:flex; flex:1; min-width:0;}
   .sidebar{
-    width:230px; flex:none; background:linear-gradient(180deg,var(--primary),#0D2530); color:#EAF1EF;
+    width:230px; flex:none; background:linear-gradient(180deg,#0e2338,#16324c); color:#c9d6e4;
     display:flex; flex-direction:column; padding:22px 14px; position:sticky; top:0; height:100vh;
     transition:width .16s ease, padding .16s ease; overflow:hidden;
   }
@@ -432,6 +432,37 @@
   .dash-alert-row{display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; cursor:pointer;}
   .dash-alert-row:last-child{border-bottom:none;}
   .dash-empty{color:var(--ink-faint); font-size:12.5px; padding:8px 0;}
+
+  /* ---- refonte tableau de bord (maquette v2) ---- */
+  .dash2-tiles{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-bottom:16px;}
+  .dash2-tile{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:15px 17px 15px 20px; position:relative; overflow:hidden;}
+  .dash2-tile::before{content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tile-color, var(--accent));}
+  .dash2-tile .lab{display:block; font-size:11.5px; color:var(--ink-soft); font-weight:600; margin-bottom:6px;}
+  .dash2-tile .val{display:block; font-size:26px; font-weight:800; color:var(--ink); line-height:1.1;}
+  .dash2-tile .sub{display:block; font-size:11px; color:var(--ink-faint); margin-top:5px;}
+  .dash2-banner{display:flex; gap:10px; align-items:flex-start; background:#FBEADD; border:1px solid #E8B25A; color:#5C4310; border-radius:10px; padding:12px 15px; font-size:12.5px; margin-bottom:16px; line-height:1.5;}
+  .dash2-banner a{color:#5C4310; font-weight:700; text-decoration:underline;}
+  .dash2-grid2{display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:16px;}
+  .dash2-grid2b{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+  @media (max-width:1000px){ .dash2-grid2, .dash2-grid2b{grid-template-columns:1fr;} }
+  .dash2-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden;}
+  .dash2-card .hd{padding:13px 17px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px;}
+  .dash2-card .hd h3{font-size:13.5px; font-weight:700; margin:0;}
+  .dash2-card .hd .sp{flex:1;}
+  .dash2-card .hd .n{font-size:11.5px; color:var(--ink-faint);}
+  .dash2-card .bd{padding:15px 17px;}
+  .dash2-card table{width:100%; border-collapse:collapse;}
+  .dash2-card table tr{cursor:pointer; border-bottom:1px solid var(--border);}
+  .dash2-card table tr:last-child{border-bottom:none;}
+  .dash2-card table td{padding:9px 17px; font-size:12.5px; vertical-align:middle;}
+  .dash2-row-title{font-weight:600; color:var(--ink);}
+  .dash2-row-sub{font-size:11px; color:var(--ink-faint); margin-top:2px;}
+  .dash2-tag{display:inline-block; border-radius:999px; padding:2px 9px; font-size:10.5px; font-weight:700; white-space:nowrap;}
+  .dash2-legend{display:flex; gap:16px; align-items:center; margin-bottom:12px; font-size:11.5px; color:var(--ink-soft);}
+  .dash2-legend .sw{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:-1px;}
+  .dash2-charge-row{margin-bottom:10px;}
+  .dash2-charge-top{display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;}
+  .dash2-charge-track{display:flex; height:13px; border-radius:5px; overflow:hidden; background:#F1EFE7; gap:2px;}
   .global-search-wrap{position:relative; flex:1; max-width:420px; margin:0 20px;}
   .global-search-wrap input{width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:var(--panel-alt,#F7F6F2);}
   .global-search-results{
@@ -1058,7 +1089,7 @@ function addMonths(d,n){ const dt=new Date(d); dt.setMonth(dt.getMonth()+n); ret
 function iso(d){ const dt=new Date(d); dt.setMinutes(dt.getMinutes()-dt.getTimezoneOffset()); return dt.toISOString().slice(0,10); }
 function sameDay(a,b){ return iso(a)===iso(b); }
 function fmtDate(d){ return d.toLocaleDateString('fr-FR',{day:'2-digit', month:'2-digit'}); }
-function fmtDateLong(iso_){ if(!iso_) return ''; const d=new Date(iso_+'T00:00:00'); return d.toLocaleDateString('fr-FR',{weekday:'long', day:'2-digit', month:'long'}); }
+function fmtDateLong(iso_){ if(!iso_) return ''; const d=new Date(iso_.slice(0,10)+'T00:00:00'); return d.toLocaleDateString('fr-FR',{weekday:'long', day:'2-digit', month:'long'}); }
 function fmtMonthLabel(d){ return d.toLocaleDateString('fr-FR',{month:'long', year:'numeric'}); }
 function isWeekend(d){ const wd=d.getDay(); return wd===0||wd===6; }
 
@@ -1250,9 +1281,9 @@ async function restoreSession(){
     const raw = await storageAdapter.get(SESSION_KEY, false);
     if(!raw) return;
     const s = JSON.parse(raw);
-    if(s.portal==='client-app' && s.authClientId && client(s.authClientId)){
-      authClientId = s.authClientId; portal = 'client-app';
-    } else if(s.portal==='tech-app' && s.authTechId && tech(s.authTechId)){
+    // Le portail client a été retiré : une session client précédemment enregistrée ne
+    // doit plus jamais être restaurée, même si elle était valide avant ce changement.
+    if(s.portal==='tech-app' && s.authTechId && tech(s.authTechId)){
       authTechId = s.authTechId; portal = 'tech-app';
     } else if(s.portal==='internal-app' && s.authInternalId && internalUser(s.authInternalId)){
       authInternalId = s.authInternalId; portal = 'internal-app';
@@ -1267,6 +1298,7 @@ async function migrateState(){
   if(!state.emailLog) state.emailLog = [];
   if(!state.auditLog) state.auditLog = [];
   if(state.supportEmail===undefined) state.supportEmail = null;
+  if(state.automationEmail===undefined) state.automationEmail = null;
   (state.internalUsers||[]).forEach(u=>{ if(u.email===undefined) u.email = null; });
   if(!state.protocols) state.protocols = JSON.parse(JSON.stringify(MAINTENANCE_PROTOCOLS));
   Object.values(state.protocols).forEach(p=>{
@@ -3961,7 +3993,7 @@ function renderLanding(){
           ${unifiedLoginError? `<div class="login-error">${escapeHtml(unifiedLoginError)}</div>` : ''}
           <button type="submit" class="btn btn-primary btn-block" style="margin-top:14px;">Se connecter</button>
         </form>
-        <div class="field-hint" style="margin-top:14px; text-align:center;">Un identifiant unique pour l'espace client, technicien ou interne — vous êtes redirigé automatiquement vers votre espace.</div>
+        <div class="field-hint" style="margin-top:14px; text-align:center;">Un identifiant unique pour l'espace technicien ou interne — vous êtes redirigé automatiquement vers votre espace.</div>
         <details style="margin-top:16px;">
           <summary style="cursor:pointer; font-size:12.5px; color:var(--ink-soft); font-weight:600;">Identifiants de démonstration</summary>
           <div class="demo-hints" style="margin-top:10px;">
@@ -3989,29 +4021,24 @@ async function bindLanding(){
     const u = document.getElementById('unified-login-username').value;
     const p = document.getElementById('unified-login-password').value;
 
-    let result = await attemptLogin(state.clients, u, p);
+    // Le portail client a été retiré : toute demande client passe désormais par email
+    // (formulaire + QR code) et arrive directement côté bureau. On ne tente donc plus
+    // de connecter un compte client ici — seuls techniciens et personnel interne.
+    let result = await attemptLogin(state.technicians, u, p);
     if(result.reason==='notfound'){
-      result = await attemptLogin(state.technicians, u, p);
-      if(result.reason==='notfound'){
-        result = await attemptLogin(state.internalUsers, u, p);
-        if(result.ok){
-          await saveState();
-          authInternalId = result.account.id; portal='internal-app'; unifiedLoginError='';
-          currentView = allowedViewsFor(result.account.role)[0];
-          logAudit('login_internal', `${result.account.username} (${result.account.role})`);
-          persistSession(); render(); return;
-        }
-      } else if(result.ok){
+      result = await attemptLogin(state.internalUsers, u, p);
+      if(result.ok){
         await saveState();
-        authTechId = result.account.id; portal='tech-app'; unifiedLoginError='';
-        currentTechWeekStart = startOfWeek(new Date());
-        logAudit('login_tech', result.account.username);
+        authInternalId = result.account.id; portal='internal-app'; unifiedLoginError='';
+        currentView = allowedViewsFor(result.account.role)[0];
+        logAudit('login_internal', `${result.account.username} (${result.account.role})`);
         persistSession(); render(); return;
       }
     } else if(result.ok){
       await saveState();
-      authClientId = result.account.id; portal='client-app'; unifiedLoginError='';
-      logAudit('login_client', result.account.username);
+      authTechId = result.account.id; portal='tech-app'; unifiedLoginError='';
+      currentTechWeekStart = startOfWeek(new Date());
+      logAudit('login_tech', result.account.username);
       persistSession(); render(); return;
     }
     await saveState();
@@ -4212,6 +4239,7 @@ function requestFormUrl(machineId){
   const params = new URLSearchParams({
     request: '1', client: cl?.name||'', ville: cl?.ville||'', model: m.model||'', serial: m.serial||'',
   });
+  if(state.automationEmail) params.set('cc', state.automationEmail);
   return `${base}?${params.toString()}`;
 }
 function renderRequestForm(){
@@ -4311,7 +4339,9 @@ Machine à l'arrêt : ${arret?'Oui':'Non'}
 Date d'apparition : ${dateApparition}
 Code alarme : ${alarme}
 Description : ${panne}`;
-  return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const ccEmail = p.get('cc');
+  const ccParam = ccEmail ? `&cc=${encodeURIComponent(ccEmail)}` : '';
+  return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}${ccParam}&body=${encodeURIComponent(body)}`;
 }
 function bindRequestFormEvents(){
   document.getElementById('rf-submit').addEventListener('click', ()=>{
@@ -4851,9 +4881,9 @@ function bindInternalLogin(){
 
 /* ================= INTERNAL SHELL ================= */
 function allowedViewsFor(role){
-  if(role==='admin') return ['dashboard','bureau','planning','maintenances_planifiees','magasin','hotline','admin','notes_frais'];
-  if(role==='responsable') return ['dashboard','planning','maintenances_planifiees','notes_frais','mes_notes_frais','demandes_conge'];
-  if(role==='coordinateur') return ['dashboard','planning','maintenances_planifiees','notes_frais'];
+  if(role==='admin') return ['dashboard','bureau','planning','admin','notes_frais','hotline','maintenances_planifiees'];
+  if(role==='responsable') return ['dashboard','planning','notes_frais','mes_notes_frais','demandes_conge','maintenances_planifiees'];
+  if(role==='coordinateur') return ['dashboard','planning','notes_frais','maintenances_planifiees'];
   if(role==='magasin') return ['magasin'];
   if(role==='directeur_technique') return ['notes_frais'];
   if(role==='comptabilite') return ['notes_frais'];
@@ -4889,39 +4919,10 @@ function renderInternalShell(){
   const pendingExpenses = pendingExpenseCountFor(me);
   const pendingConges = pendingCongeCountFor(me);
   const pendingHotline = (state.hotlineRequests||[]).filter(h=>h.status==='ouverte').length;
-  /* ---- Navigation interne : regroupée par flux de travail ----
-     Un menu se lit comme le travail se fait : ce que je pilote, ce qui arrive et se planifie,
-     ce sur quoi je m'appuie, puis l'administratif de l'équipe. Chaque entrée reste soumise
-     aux droits du rôle (allowedViewsFor) — regrouper ne donne aucun accès supplémentaire. */
-  const NAV_GROUPS = [
-    { label:'Pilotage', items:[
-      { view:'dashboard', icon:'gear', label:'Tableau de bord', title:"Vue d'ensemble du secteur" },
-    ]},
-    { label:'Flux de travail', items:[
-      { view:'bureau', icon:'inbox', label:'Demandes clients', badge:pendingDemandes, title:'Demandes reçues, à qualifier avant planification' },
-      { view:'hotline', icon:'wrench', label:'Hotline technique', badge:pendingHotline, title:'Assistance technique en cours' },
-      { view:'planning', icon:'calendar', label:'Planning', badge:pendingPlanning, title:'Affectation des interventions aux techniciens' },
-      { view:'maintenances_planifiees', icon:'calendar', label:'Préventif & échéances', title:'Maintenances préventives et échéances contractuelles à venir' },
-      { view:'magasin', icon:'wrench', label:'Pièces à commander', title:'Pièces à préparer pour les préventifs à venir' },
-    ]},
-    { label:'Référentiel', items:[
-      { view:'admin', icon:'gear', label:'Clients & contrats', title:'Clients, sites, machines, contrats et paramétrage' },
-    ]},
-    { label:'Équipe', items:[
-      { view:'notes_frais', icon:'inbox', label:'Notes de frais', badge:pendingExpenses, title:'Notes de frais à valider' },
-      { view:'mes_notes_frais', icon:'inbox', label:'Mes notes de frais', title:'Mes propres notes de frais' },
-      { view:'demandes_conge', icon:'calendar', label:'Demandes de congé', badge:pendingConges, title:'Congés à valider' },
-    ]},
-  ];
-  /* Sous 3 entrées visibles (magasin, hotline, comptabilité…), les intitulés de groupe
-     n'apportent rien : on ne montre que les entrées. */
-  const navTotal = NAV_GROUPS.reduce((n,g)=>n + g.items.filter(it=>allowed.includes(it.view)).length, 0);
-  const navHtml = NAV_GROUPS.map(g=>{
-    const items = g.items.filter(it=>allowed.includes(it.view));
-    if(!items.length) return '';
-    return (navTotal>2 ? `<div class="nav-group-label">${escapeHtml(g.label)}</div>` : '') + items.map(it=>`
-        <div class="nav-item ${currentView===it.view?'active':''}" data-view="${it.view}" title="${escapeHtml(it.title||it.label)}">${icon(it.icon)} ${escapeHtml(it.label)}${it.badge?`<span class="badge">${it.badge}</span>`:''}</div>`).join('');
-  }).join('\n        ');
+  const navHasOverview = allowed.includes('dashboard');
+  const navHasOps = allowed.includes('bureau') || allowed.includes('planning') || allowed.includes('maintenances_planifiees') || allowed.includes('magasin') || allowed.includes('hotline');
+  const navHasAdmin = allowed.includes('admin');
+  const navHasHR = allowed.includes('notes_frais') || allowed.includes('mes_notes_frais') || allowed.includes('demandes_conge');
   return `
     <div class="app-shell">
       <div class="sidebar ${loadSidebarCollapsed()?'collapsed':''}">
@@ -4932,7 +4933,20 @@ function renderInternalShell(){
           <div class="ci-name">${escapeHtml(me.name)}</div>
           <div class="ci-contract">${roleLabel}</div>
         </div>
-        ${navHtml}
+        ${navHasOverview? `<div class="nav-group-label">Vue d'ensemble</div>` : ''}
+        ${allowed.includes('dashboard')? `<div class="nav-item ${currentView==='dashboard'?'active':''}" data-view="dashboard">${icon('gear')} Tableau de bord</div>` : ''}
+        ${navHasOps? `<div class="nav-group-label">Opérations</div>` : ''}
+        ${allowed.includes('bureau')? `<div class="nav-item ${currentView==='bureau'?'active':''}" data-view="bureau">${icon('inbox')} Bureau ${pendingDemandes?`<span class="badge">${pendingDemandes}</span>`:''}</div>` : ''}
+        ${allowed.includes('planning')? `<div class="nav-item ${currentView==='planning'?'active':''}" data-view="planning">${icon('calendar')} Planning ${pendingPlanning?`<span class="badge">${pendingPlanning}</span>`:''}</div>` : ''}
+        ${allowed.includes('maintenances_planifiees')? `<div class="nav-item ${currentView==='maintenances_planifiees'?'active':''}" data-view="maintenances_planifiees">${icon('wrench')} Maintenances planifiées</div>` : ''}
+        ${allowed.includes('magasin')? `<div class="nav-item ${currentView==='magasin'?'active':''}" data-view="magasin">${icon('wrench')} Maintenances préventives</div>` : ''}
+        ${allowed.includes('hotline')? `<div class="nav-item ${currentView==='hotline'?'active':''}" data-view="hotline">${icon('wrench')} Hotline ${pendingHotline?`<span class="badge">${pendingHotline}</span>`:''}</div>` : ''}
+        ${navHasAdmin? `<div class="nav-group-label">Administration</div>` : ''}
+        ${allowed.includes('admin')? `<div class="nav-item ${currentView==='admin'?'active':''}" data-view="admin">${icon('gear')} Clients &amp; contrats</div>` : ''}
+        ${navHasHR? `<div class="nav-group-label">Frais &amp; congés</div>` : ''}
+        ${allowed.includes('notes_frais')? `<div class="nav-item ${currentView==='notes_frais'?'active':''}" data-view="notes_frais">${icon('inbox')} Notes de frais ${pendingExpenses?`<span class="badge">${pendingExpenses}</span>`:''}</div>` : ''}
+        ${allowed.includes('mes_notes_frais')? `<div class="nav-item ${currentView==='mes_notes_frais'?'active':''}" data-view="mes_notes_frais">${icon('inbox')} Mes notes de frais</div>` : ''}
+        ${allowed.includes('demandes_conge')? `<div class="nav-item ${currentView==='demandes_conge'?'active':''}" data-view="demandes_conge">${icon('calendar')} Demandes de congé ${pendingConges?`<span class="badge">${pendingConges}</span>`:''}</div>` : ''}
         <div class="sidebar-foot">
           <span class="logout-link" id="internal-logout" style="color:#8FB7AE; margin-bottom:8px; display:flex;">${icon('logout')} Se déconnecter</span>
           ${me.role==='admin'? `<span class="reset-link" id="reset-data">Réinitialiser les données</span>` : ''}
@@ -4971,16 +4985,16 @@ function renderTopbar(){
   const tb = document.getElementById('topbar');
   const meta = {
     dashboard:{h:"Tableau de bord", p:"Vue d'ensemble de l'activité, des délais et de la charge de l'équipe."},
-    bureau:{h:"Demandes clients", p:"Qualifiez chaque demande : n° d'appel, puis création de l'intervention qui partira dans la file du planning."},
+    bureau:{h:"Bureau — Traitement des demandes", p:"Attribuez un n° d'appel puis créez l'intervention pour chaque demande client."},
     planning:{h:"Planning technique", p:"Glissez-déposez les interventions sur la ligne de temps, ajustez leur durée."},
     admin:{h:"Clients, contrats &amp; parc machines", p:"Gérez les fiches clients, leurs accès, leur contrat et leurs équipements."},
-    magasin:{h:"Pièces à commander", p:"Vue de consultation — préparez les pièces des maintenances préventives à venir."},
+    magasin:{h:"Maintenances préventives planifiées", p:"Vue de consultation — préparez les pièces des prochaines interventions."},
     notes_frais:{h:"Notes de frais", p:"Circuit de validation : responsable secteur → bureau → directeur technique → comptabilité."},
     mes_notes_frais:{h:"Mes notes de frais", p:"Vos propres notes de frais hebdomadaires — soumises directement au bureau."},
     demandes_conge:{h:"Demandes de congé", p:"Validez les demandes de congé, RTT ou d'absence de vos techniciens."},
-    maintenances_planifiees:{h:"Préventif &amp; échéances", p:"Échéances contractuelles à venir, maintenances préventives planifiées et confirmation client."},
-    hotline:{h:"Hotline technique", p:"Demandes d'assistance envoyées par les techniciens sur le terrain."},
-  }[currentView] || { h:'GMAO', p:'' };
+    maintenances_planifiees:{h:"Maintenances planifiées", p:"Vue d'ensemble des maintenances préventives à venir et de leur confirmation client."},
+    hotline:{h:"Hotline — Appuis techniques", p:"Demandes d'assistance envoyées par les techniciens sur le terrain."},
+  }[currentView];
   tb.innerHTML = `<div><h1>${meta.h}</h1><p>${meta.p}</p></div>
     <div class="global-search-wrap">
       <input type="text" id="global-search-input" placeholder="🔍 Client, machine, n° de série, n° d'appel...">
@@ -5102,7 +5116,7 @@ function icon(name){
 /* ================= BUREAU VIEW ================= */
 let bureauShowTraitees = false;
 function viewBureau(){
-  const all = state.interventions.filter(i=>i.createdBy==='client' || i.createdBy==='responsable').slice().reverse();
+  const all = state.interventions.filter(i=>i.createdBy==='client' || i.createdBy==='responsable' || i.createdBy==='email').slice().reverse();
   const rouge = all.filter(d=>demandeColor(d)==='rouge');
   const orange = all.filter(d=>demandeColor(d)==='orange');
   const vert = all.filter(d=>demandeColor(d)==='vert');
@@ -5112,6 +5126,8 @@ function viewBureau(){
     const color = demandeColor(d);
     const provenance = d.createdBy==='responsable'
       ? `Signalée par ${escapeHtml(d.signaleePar||'un responsable')} · ${fmtDateLong(d.createdAt)}`
+      : d.createdBy==='email'
+      ? `Reçue par email (automatique) · ${fmtDateLong(d.createdAt)}`
       : `Reçue le ${fmtDateLong(d.createdAt)}`;
     return `
     <div class="card req-card">
@@ -5148,7 +5164,7 @@ function viewBureau(){
         <div class="lg-item"><span class="lg-dot" style="background:var(--amber)"></span>En cours (n° d'appel attribué)</div>
         <div class="lg-item"><span class="lg-dot" style="background:var(--green)"></span>Traité</div>
       </div>
-      ${(rouge.length+orange.length)? '' : `<div class="empty" style="margin-bottom:18px;">Aucune demande en attente. Les nouvelles demandes déposées depuis l'espace client apparaîtront ici.</div>`}
+      ${(rouge.length+orange.length)? '' : `<div class="empty" style="margin-bottom:18px;">Aucune demande en attente. Les nouvelles demandes reçues par email (formulaire ou QR code) apparaîtront ici.</div>`}
       ${rouge.map(cardHtml).join('')}
       ${orange.map(cardHtml).join('')}
       ${vert.length? `
@@ -6635,48 +6651,126 @@ function viewDashboard(){
   const upcomingDueCount = computeUpcomingDueMachines(allowedSecteurIds).length;
   const lowStockCount = state.stockItems.filter(s=> (!allowedSecteurIds || !s.secteurId || allowedSecteurIds.includes(s.secteurId)) && s.quantite<=s.seuilAlerte).length;
 
+  /* ---- calculs additionnels pour la refonte du tableau de bord ---- */
+  const demandes = scoped.filter(iv=>iv.status==='demande');
+  const demandesUrgentes = demandes.filter(iv=>iv.priorite==='urgente').length;
+  const weekStart = iso(startOfWeek(new Date()));
+  const weekEnd = iso(addDays(startOfWeek(new Date()), 6));
+  const thisWeek = scoped.filter(iv=> iv.plannedDate && iv.plannedDate>=weekStart && iv.plannedDate<=weekEnd);
+  const todayIvs = scoped.filter(iv=> iv.plannedDate===today && iv.status!=='terminee')
+    .sort((a,b)=>{
+      const an = a.technicianId ? (tech(a.technicianId)?.name||'') : '';
+      const bn = b.technicianId ? (tech(b.technicianId)?.name||'') : '';
+      return an.localeCompare(bn);
+    });
+  const dueRisk = computeUpcomingDueMachines(allowedSecteurIds).slice(0,8);
+  const recentDemandes = demandes.slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).slice(0,6);
+  const chargeSemaine = visibleTechs.map(t=>{
+    const mine = thisWeek.filter(iv=>ivAssignedTo(iv,t.id));
+    const prev = mine.filter(iv=>iv.type==='preventive').length;
+    const autre = mine.length - prev;
+    return { t, prev, autre, tot: mine.length };
+  }).filter(c=>c.tot>0 || visibleTechs.length<=8).sort((a,b)=>b.tot-a.tot);
+  const maxChargeSemaine = Math.max(1, ...chargeSemaine.map(c=>c.tot));
+  const STATUS_TAG_BG = { demande:'#FBEADD', encours:'#E3EEF3', retard:'#F8E1DE' };
+  const PRIORITE_TAG = { urgente:{bg:'rgba(208,59,59,.12)', fg:'#d03b3b', label:'Urgent'}, normale:{bg:'#EEEBE3', fg:'#6B675C', label:'Normal'} };
+
   return `
-    <div class="dash-grid">
-      <div class="dash-kpi"><div class="dk-value">${thisMonth.length}</div><div class="dk-label">Interventions ce mois-ci</div></div>
-      <div class="dash-kpi ${late.length?'warn':''}"><div class="dk-value">${late.length}</div><div class="dk-label">En retard</div></div>
-      <div class="dash-kpi"><div class="dk-value">${mttrLabel}</div><div class="dk-label">Temps moyen de résolution <span class="muted">(90j)</span></div></div>
-      <div class="dash-kpi ${tauxPonctualite!==null && tauxPonctualite<80?'warn':''}"><div class="dk-value">${tauxPonctualite===null?'—':tauxPonctualite+'%'}</div><div class="dk-label">Ponctualité préventif <span class="muted">(12 mois)</span></div></div>
-      <div class="dash-kpi"><div class="dk-value">${enCours.length}</div><div class="dk-label">Interventions en cours</div></div>
-      <div class="dash-kpi ${upcomingDueCount?'warn':''}"><div class="dk-value">${upcomingDueCount}</div><div class="dk-label">Échéances préventives à planifier <span class="muted">(90j)</span></div></div>
-      <div class="dash-kpi ${lowStockCount?'warn':''}"><div class="dk-value">${lowStockCount}</div><div class="dk-label">Pièces sous le seuil de stock</div></div>
+    ${(lowStockCount>0 || demandesUrgentes>0) ? `
+    <div class="dash2-banner" style="background:rgba(208,59,59,.08); border-color:rgba(208,59,59,.35); color:#a52a2a;">
+      <span>⚠</span>
+      <div>
+        ${demandesUrgentes>0?`<strong>${demandesUrgentes} demande${demandesUrgentes>1?'s':''} urgente${demandesUrgentes>1?'s':''}</strong> en attente de qualification. `:''}
+        ${lowStockCount>0?`<strong>${lowStockCount} référence${lowStockCount>1?'s':''}</strong> de pièces sous le seuil de stock.`:''}
+      </div>
+    </div>` : ''}
+
+    <div class="dash2-tiles">
+      <div class="dash2-tile" style="--tile-color:#d03b3b;"><span class="lab">Demandes à qualifier</span><span class="val">${demandes.length}</span><span class="sub">${demandesUrgentes?`dont ${demandesUrgentes} urgente${demandesUrgentes>1?'s':''}`:'aucune urgente'}</span></div>
+      <div class="dash2-tile" style="--tile-color:#ec835a;"><span class="lab">Préventifs en retard</span><span class="val">${late.length}</span><span class="sub">échéance planifiée dépassée</span></div>
+      <div class="dash2-tile" style="--tile-color:#2a78d6;"><span class="lab">Interventions cette semaine</span><span class="val">${thisWeek.length}</span><span class="sub">${chargeSemaine.length} technicien(s) mobilisé(s)</span></div>
+      <div class="dash2-tile" style="--tile-color:${tauxPonctualite!==null && tauxPonctualite<80?'#ec835a':'#0ca30c'};"><span class="lab">Respect des échéances</span><span class="val">${tauxPonctualite===null?'—':tauxPonctualite+'%'}</span><span class="sub">préventif, 12 derniers mois</span></div>
     </div>
 
-    <div class="dash-section">
-      <div class="dash-section-title">Répartition des interventions en cours par statut</div>
-      ${Object.entries(STATUS_COLOR_LABELS).filter(([k])=>statusCounts[k]!==undefined).map(([k,label])=>`
-        <div class="dash-bar-row">
-          <div class="dash-bar-label">${label}</div>
-          <div class="dash-bar-track"><div class="dash-bar-fill" style="width:${(statusCounts[k]/maxStatus*100)}%; background:${STATUS_BAR_COLORS[k]};"></div></div>
-          <div class="dash-bar-count">${statusCounts[k]}</div>
+    <div class="dash2-grid2">
+      <div class="dash2-card">
+        <div class="hd"><h3>Charge de la semaine par technicien</h3><span class="sp"></span><span class="n">${fmtDate(new Date(weekStart))} — ${fmtDate(new Date(weekEnd))}</span></div>
+        <div class="bd">
+          <div class="dash2-legend">
+            <span><span class="sw" style="background:#2a78d6;"></span>Préventif</span>
+            <span><span class="sw" style="background:#eb6834;"></span>Correctif / autre</span>
+          </div>
+          ${chargeSemaine.length ? chargeSemaine.map(c=>{
+            const p = maxChargeSemaine ? (c.prev/maxChargeSemaine*100) : 0;
+            const a = maxChargeSemaine ? (c.autre/maxChargeSemaine*100) : 0;
+            return `
+            <div class="dash2-charge-row">
+              <div class="dash2-charge-top"><span>${escapeHtml(c.t.name)}</span><span class="muted">${c.tot} intervention${c.tot>1?'s':''}</span></div>
+              <div class="dash2-charge-track">
+                <div style="width:${p}%; background:#2a78d6;" title="Préventif : ${c.prev}"></div>
+                <div style="width:${a}%; background:#eb6834;" title="Correctif / autre : ${c.autre}"></div>
+              </div>
+            </div>`;
+          }).join('') : `<div class="dash-empty">Aucune intervention planifiée cette semaine dans votre périmètre.</div>`}
         </div>
-      `).join('')}
+      </div>
+      <div class="dash2-card">
+        <div class="hd"><h3>Aujourd'hui</h3><span class="sp"></span><span class="n">${todayIvs.length} intervention${todayIvs.length>1?'s':''}</span></div>
+        <div class="bd" style="padding:0;">
+          <table><tbody>
+            ${todayIvs.length ? todayIvs.slice(0,8).map(iv=>{
+              const cl = client(iv.clientId);
+              const t = iv.technicianId ? tech(iv.technicianId) : null;
+              return `<tr data-open-dash-iv="${iv.id}">
+                <td>
+                  <div class="dash2-row-title">${escapeHtml(cl?.name||'—')}</div>
+                  <div class="dash2-row-sub">${escapeHtml((iv.panne||typeLabel(iv.type)||'').slice(0,50))} ${t?'· '+escapeHtml(t.name):''}</div>
+                </td>
+              </tr>`;
+            }).join('') : `<tr><td class="dash-empty">Rien de planifié aujourd'hui dans votre périmètre.</td></tr>`}
+          </tbody></table>
+        </div>
+      </div>
     </div>
 
-    <div class="dash-section">
-      <div class="dash-section-title">Charge par technicien <span class="muted" style="font-weight:400;">(interventions non terminées)</span></div>
-      ${charge.length? charge.map(c=>`
-        <div class="dash-bar-row">
-          <div class="dash-bar-label">${escapeHtml(c.t.name)}</div>
-          <div class="dash-bar-track"><div class="dash-bar-fill" style="width:${(c.count/maxCharge*100)}%; background:${c.t.color||'var(--accent)'};"></div></div>
-          <div class="dash-bar-count">${c.count}</div>
+    <div class="dash2-grid2b">
+      <div class="dash2-card">
+        <div class="hd"><h3>Échéances contractuelles à risque</h3><span class="sp"></span><span class="n">90 prochains jours</span></div>
+        <div class="bd" style="padding:0;">
+          <table><tbody>
+            ${dueRisk.length ? dueRisk.map(d=>`
+              <tr data-open-dash-machine="${d.m.id}">
+                <td>
+                  <div class="dash2-row-title">${escapeHtml(d.m.model)}</div>
+                  <div class="dash2-row-sub">${escapeHtml(d.cl?.name||'')} · ${escapeHtml(d.m.serial)}</div>
+                </td>
+                <td style="text-align:right; white-space:nowrap;">
+                  <span class="dash2-tag" style="background:${d.overdue?'rgba(208,59,59,.12)':'rgba(250,178,25,.16)'}; color:${d.overdue?'#d03b3b':'#8a6100'};">${d.overdue?'Dépassée':fmtDateLong(d.due)}</span>
+                </td>
+              </tr>
+            `).join('') : `<tr><td class="dash-empty">Aucune échéance à risque sur la période.</td></tr>`}
+          </tbody></table>
         </div>
-      `).join('') : `<div class="dash-empty">Aucun technicien dans votre périmètre.</div>`}
-    </div>
-
-    <div class="dash-section">
-      <div class="dash-section-title">Clients avec pannes récurrentes <span class="muted" style="font-weight:400;">(correctives, 90 derniers jours)</span></div>
-      ${topClients.length? topClients.map(c=>`
-        <div class="dash-bar-row">
-          <div class="dash-bar-label">${escapeHtml(c.cl.name)}</div>
-          <div class="dash-bar-track"><div class="dash-bar-fill" style="width:${(c.count/maxClientCount*100)}%; background:#C0453D;"></div></div>
-          <div class="dash-bar-count">${c.count}</div>
+      </div>
+      <div class="dash2-card">
+        <div class="hd"><h3>Dernières demandes reçues</h3><span class="sp"></span><button class="btn btn-ghost btn-sm" data-view="bureau">Tout voir</button></div>
+        <div class="bd" style="padding:0;">
+          <table><tbody>
+            ${recentDemandes.length ? recentDemandes.map(iv=>{
+              const cl = client(iv.clientId);
+              const pr = PRIORITE_TAG[iv.priorite] || PRIORITE_TAG.normale;
+              const provenance = iv.createdBy==='email' ? 'Email' : iv.createdBy==='responsable' ? 'Signalée' : 'Reçue';
+              return `<tr data-open-dash-iv="${iv.id}">
+                <td>
+                  <div class="dash2-row-title">${escapeHtml(cl?.name||'—')}</div>
+                  <div class="dash2-row-sub">${escapeHtml((iv.panne||'').slice(0,45))} · ${provenance}${iv.createdAt?(' · '+fmtDate(new Date(iv.createdAt))):''}</div>
+                </td>
+                <td style="text-align:right; white-space:nowrap;"><span class="dash2-tag" style="background:${pr.bg}; color:${pr.fg};">${pr.label}</span></td>
+              </tr>`;
+            }).join('') : `<tr><td class="dash-empty">Aucune demande récente.</td></tr>`}
+          </tbody></table>
         </div>
-      `).join('') : `<div class="dash-empty">Aucune panne récurrente détectée sur la période.</div>`}
+      </div>
     </div>
 
     <div class="dash-section">
@@ -8570,6 +8664,13 @@ function adminSectionSecurite(){
         <input type="email" id="support-email-input" value="${escapeHtml(state.supportEmail||'')}" placeholder="${OFFICIAL_SUPPORT_EMAIL}">
         <button class="btn btn-primary btn-sm" id="support-email-save-btn" style="margin-top:10px;">Enregistrer</button>
       </div>
+      <div class="card section-gap" style="padding:18px 20px; margin-top:16px;">
+        <div class="section-title">${icon('inbox')} Adresse de création automatique d'intervention</div>
+        <div class="field-hint" style="margin-top:0;">L'adresse Gmail dédiée surveillée par le script Google (celle qui crée automatiquement l'intervention dans le GMAO). Une fois renseignée, elle est mise en copie de chaque nouvelle demande envoyée via le QR code ou le formulaire — sans rien changer pour vos collègues, qui continuent de voir ces demandes normalement dans leur boîte habituelle.</div>
+        <label style="margin-top:0;">Adresse Gmail dédiée</label>
+        <input type="email" id="automation-email-input" value="${escapeHtml(state.automationEmail||'')}" placeholder="interventions.matachana@gmail.com">
+        <button class="btn btn-primary btn-sm" id="automation-email-save-btn" style="margin-top:10px;">Enregistrer</button>
+      </div>
       <div class="card section-gap" style="padding:18px 20px; margin-top:16px; border:1px solid #E3B23D;">
         <div class="section-title" style="color:#8A6416;">${icon('gear')} Récupération d'urgence</div>
         <div class="field-hint" style="margin-top:0;">Si vos clients, techniciens ou machines ont disparu suite à un incident technique, cette action tente de restaurer les données depuis l'ancienne sauvegarde à document unique (avant la répartition en plusieurs documents) — celle-ci n'est jamais supprimée automatiquement.</div>
@@ -9475,7 +9576,7 @@ function openAddClientModal(){
   const overlay = document.createElement('div'); overlay.className='overlay';
   overlay.innerHTML = `
     <div class="modal">
-      <div class="modal-head"><div><h3>Ajouter un client</h3><p>Crée sa fiche et son compte d'accès à l'espace client</p></div>
+      <div class="modal-head"><div><h3>Ajouter un client</h3><p>Crée sa fiche (coordonnées, machines, contrats) — utilisée pour les demandes par email et les confirmations</p></div>
       <button class="modal-close" id="close-modal">&times;</button></div>
       <div class="modal-body">
         <label>Nom du client</label>
@@ -9497,9 +9598,8 @@ function openAddClientModal(){
           ${state.secteurs.map(s=>`<option value="${s.id}" ${(adminSecteurFilter!=='all' && adminSecteurFilter!=='none' && adminSecteurFilter===s.id)?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}
         </select>
         ${(adminSecteurFilter!=='all' && adminSecteurFilter!=='none')? `<div class="field-hint">Présélectionné d'après le filtre actif : ${escapeHtml(secteurLabel(adminSecteurFilter))}.</div>` : ''}
-        <label>Identifiant de connexion</label>
+        <label>Identifiant interne <span class="muted" style="font-weight:400;">(référence uniquement — ne donne plus accès à une connexion)</span></label>
         <input type="text" id="nc-username" placeholder="généré automatiquement à partir du nom">
-        <div class="field-hint">Mot de passe attribué automatiquement : <strong>${DEMO_PASSWORD}</strong> (modifiable ensuite depuis la liste).</div>
       </div>
       <div class="modal-foot">
         <button class="btn btn-ghost" id="cancel-modal">Annuler</button>
@@ -10081,6 +10181,12 @@ function bindContentEvents(){
     document.querySelectorAll('[data-open-dash-iv]').forEach(el=>{
       el.addEventListener('click', ()=>openJobDetail(el.dataset.openDashIv, renderContent));
     });
+    document.querySelectorAll('[data-open-dash-machine]').forEach(el=>{
+      el.addEventListener('click', ()=>openMachineFicheModal(el.dataset.openDashMachine));
+    });
+    document.querySelector('.dash2-card [data-view="bureau"]')?.addEventListener('click', ()=>{
+      currentView = 'bureau'; render();
+    });
   }
   if(currentView==='demandes_conge'){
     document.querySelectorAll('[data-open-conge]').forEach(card=>{
@@ -10213,6 +10319,13 @@ function bindContentEvents(){
       state.supportEmail = val || null;
       await saveState();
       showToast(val ? 'Adresse de support enregistrée' : 'Adresse de support effacée');
+      renderContent();
+    });
+    document.getElementById('automation-email-save-btn')?.addEventListener('click', async ()=>{
+      const val = document.getElementById('automation-email-input').value.trim();
+      state.automationEmail = val || null;
+      await saveState();
+      showToast(val ? "Adresse d'automatisation enregistrée" : "Adresse d'automatisation effacée");
       renderContent();
     });
     document.getElementById('import-backup-btn')?.addEventListener('click', ()=>document.getElementById('import-backup-input').click());
