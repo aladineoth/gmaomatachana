@@ -239,6 +239,8 @@
   .admin-shell{display:flex; gap:20px; align-items:flex-start;}
   .admin-nav{width:210px; flex:none; background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:10px; position:sticky; top:14px;}
   .admin-nav-item{display:flex; align-items:center; gap:9px; padding:9px 11px; border-radius:8px; font-size:13px; font-weight:500; color:var(--ink-soft); cursor:pointer; margin-bottom:2px;}
+  .admin-nav-group-label{font-size:10.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--ink-faint); padding:14px 11px 5px;}
+  .admin-nav-group-label:first-child{padding-top:2px;}
   .admin-nav-item:hover{background:#F7F6F1;}
   .admin-nav-item.active{background:var(--primary); color:#fff;}
   .admin-content{flex:1; min-width:0; display:flex; flex-direction:column; gap:20px;}
@@ -389,11 +391,15 @@
   .tech-ring-hole{width:100%; height:100%; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:9.5px; font-weight:700; box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);}
   .gantt-techname .tname{font-weight:600; font-size:10.5px; color:var(--tg-text); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;}
   .gantt-techname .tname .muted{color:var(--tg-text-soft) !important; font-size:9.5px;}
-  .gantt-daybg{border-right:1px solid var(--tg-border); border-bottom:1px solid var(--tg-border); background:var(--tg-bg); transition:background .1s ease;}
+  .gantt-daybg{border-right:1px solid var(--tg-border); border-bottom:1px solid var(--tg-border); background:var(--tg-bg); transition:background .1s ease; position:relative;}
+  .gantt-daybg::after{content:''; position:absolute; left:4px; right:4px; top:50%; border-top:1px dashed transparent; pointer-events:none;}
+  .gantt-daybg:hover::after{border-top-color:var(--tg-border);}
+  .gantt-daybg.dragover-upper{background:linear-gradient(to bottom, var(--tg-accent-soft) 0 50%, var(--tg-bg) 50% 100%);}
+  .gantt-daybg.dragover-lower{background:linear-gradient(to bottom, var(--tg-bg) 0 50%, var(--tg-accent-soft) 50% 100%);}
   .gantt-daybg.weekend{background:#0A1D26;}
   .gantt-daybg.today-col{background:var(--tg-today);}
   .gantt-daybg.weekend.today-col{background:#332C16;}
-  .gantt-daybg.dragover{background:var(--tg-accent-soft) !important;}
+  .gantt-daybg.dragover{outline:1px solid var(--tg-accent);}
   .gantt-team-band{
     position:sticky; left:0; z-index:2; background:var(--tg-teal); color:#EAF7F0; display:flex; align-items:center; gap:10px;
     padding:0 14px; font-family:var(--font-display); font-size:11.5px; font-weight:700; letter-spacing:.4px;
@@ -8717,17 +8723,17 @@ function viewMagasin(){
   `;
 }
 const ADMIN_SECTIONS = [
-  { key:'securite', label:'Fiabilité & sécurité', icon:'gear' },
-  { key:'secteurs', label:'Secteurs', icon:'gear' },
-  { key:'clients', label:'Clients & comptes', icon:'user' },
-  { key:'techniciens', label:'Techniciens', icon:'wrench' },
-  { key:'comptes', label:'Comptes internes', icon:'gear' },
-  { key:'machines', label:'Parc machines', icon:'wrench' },
-  { key:'stock', label:'Stock de pièces', icon:'wrench' },
-  { key:'import-revisions', label:'Import échéances de révision', icon:'calendar' },
-  { key:'protocoles', label:'Protocoles de maintenance', icon:'calendar' },
-  { key:'qr-print', label:'Imprimer des QR codes', icon:'wrench' },
-  { key:'toggl', label:'Intégration Toggl Plan', icon:'calendar' },
+  { key:'clients', label:'Clients & comptes', icon:'user', group:'Référentiel' },
+  { key:'machines', label:'Parc machines', icon:'wrench', group:'Référentiel' },
+  { key:'techniciens', label:'Techniciens', icon:'wrench', group:'Référentiel' },
+  { key:'secteurs', label:'Secteurs', icon:'gear', group:'Référentiel' },
+  { key:'stock', label:'Stock de pièces', icon:'wrench', group:'Référentiel' },
+  { key:'import-revisions', label:'Import échéances de révision', icon:'calendar', group:'Outils' },
+  { key:'qr-print', label:'Imprimer des QR codes', icon:'wrench', group:'Outils' },
+  { key:'toggl', label:'Intégration Toggl Plan', icon:'calendar', group:'Outils' },
+  { key:'comptes', label:'Comptes internes', icon:'gear', group:'Administration' },
+  { key:'protocoles', label:'Protocoles de maintenance', icon:'calendar', group:'Administration' },
+  { key:'securite', label:'Fiabilité & sécurité', icon:'gear', group:'Administration' },
 ];
 function viewAdmin(){
   const sectionFns = {
@@ -8737,10 +8743,16 @@ function viewAdmin(){
     'import-revisions': adminSectionImportRevisions, 'qr-print': adminSectionQrPrint,
   };
   const fn = sectionFns[adminSection] || adminSectionSecurite;
+  let lastGroup = null;
+  const navHtml = ADMIN_SECTIONS.map(s=>{
+    const groupHeader = s.group!==lastGroup ? `<div class="admin-nav-group-label">${s.group}</div>` : '';
+    lastGroup = s.group;
+    return `${groupHeader}<div class="admin-nav-item ${adminSection===s.key?'active':''}" data-admin-section="${s.key}">${icon(s.icon)} ${s.label}</div>`;
+  }).join('');
   return `
     <div class="admin-shell">
       <div class="admin-nav">
-        ${ADMIN_SECTIONS.map(s=>`<div class="admin-nav-item ${adminSection===s.key?'active':''}" data-admin-section="${s.key}">${icon(s.icon)} ${s.label}</div>`).join('')}
+        ${navHtml}
       </div>
       <div class="admin-content">${fn()}</div>
     </div>
@@ -10948,10 +10960,19 @@ function bindGanttDragDrop(){
 
   // drop targets: day background cells
   document.querySelectorAll('.gantt-daybg').forEach(cell=>{
-    cell.addEventListener('dragover', e=>{ e.preventDefault(); cell.classList.add('dragover'); });
-    cell.addEventListener('dragleave', ()=>cell.classList.remove('dragover'));
+    cell.addEventListener('dragover', e=>{
+      e.preventDefault(); cell.classList.add('dragover');
+      const rect = cell.getBoundingClientRect();
+      const upperHalf = (e.clientY - rect.top) < rect.height/2;
+      cell.classList.toggle('dragover-upper', upperHalf);
+      cell.classList.toggle('dragover-lower', !upperHalf);
+    });
+    cell.addEventListener('dragleave', ()=>cell.classList.remove('dragover','dragover-upper','dragover-lower'));
     cell.addEventListener('drop', async e=>{
-      e.preventDefault(); cell.classList.remove('dragover');
+      e.preventDefault();
+      const rect = cell.getBoundingClientRect();
+      const droppedSlot = (e.clientY - rect.top) < rect.height/2 ? 'matin' : 'apres-midi';
+      cell.classList.remove('dragover','dragover-upper','dragover-lower');
       if(!dragMeta) return;
       const iv = state.interventions.find(i=>i.id===dragMeta.id);
       if(!iv) return;
@@ -10960,10 +10981,11 @@ function bindGanttDragDrop(){
       iv.technicianId = cell.dataset.tech;
       iv.plannedDate = iso(startDate);
       iv.plannedEndDate = iso(endDate);
+      iv.plannedSlot = dragMeta.duration>1 ? null : droppedSlot; // pas de créneau sur plusieurs jours, ambigu
       if(cell.dataset.lane!==undefined) iv.laneHint = parseInt(cell.dataset.lane, 10);
       if(iv.status!=='terminee') iv.status='planifiee';
       await saveState(); renderTopbar(); renderContent();
-      showToast('Intervention planifiée');
+      showToast(`Intervention planifiée${iv.plannedSlot?' — '+SLOT_LABELS[iv.plannedSlot]:''}`);
     });
     if(canValidate() || (currentInternalUser()||{}).role==='bureau'){
       cell.addEventListener('contextmenu', e=>{
@@ -10971,19 +10993,22 @@ function bindGanttDragDrop(){
         showGanttContextMenu(e.clientX, e.clientY, null, { technicianId:cell.dataset.tech, date:cell.dataset.date });
       });
     }
-    cell.addEventListener('click', async ()=>{
+    cell.addEventListener('click', async (e)=>{
       if(!pendingPlacementIvId) return;
       const iv = state.interventions.find(i=>i.id===pendingPlacementIvId);
       clearPlacementSelection();
       if(!iv) return;
+      const rect = cell.getBoundingClientRect();
+      const clickedSlot = (e.clientY - rect.top) < rect.height/2 ? 'matin' : 'apres-midi';
       const startDate = new Date(cell.dataset.date+'T00:00:00');
       iv.technicianId = cell.dataset.tech;
       iv.plannedDate = iso(startDate);
       iv.plannedEndDate = iso(startDate);
+      iv.plannedSlot = clickedSlot;
       if(cell.dataset.lane!==undefined) iv.laneHint = parseInt(cell.dataset.lane, 10);
       if(iv.status!=='terminee') iv.status='planifiee';
       await saveState(); renderTopbar(); renderContent();
-      showToast('Intervention planifiée');
+      showToast(`Intervention planifiée — ${SLOT_LABELS[clickedSlot]}`);
     });
   });
 
