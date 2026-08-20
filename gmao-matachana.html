@@ -4333,11 +4333,76 @@ function renderRequestForm(){
           <div id="rf-error" style="color:#B4562F; font-size:12px; margin-top:10px; display:none;">Merci de décrire la panne avant d'envoyer.</div>
 
           <button id="rf-submit" style="width:100%; margin-top:18px; padding:13px; background:#12313F; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">${icon('mail')} Envoyer la demande par email</button>
-          <div style="font-size:11px; color:#8A96A0; margin-top:8px; text-align:center;">Ouvre votre application mail habituelle — vous validez l'envoi vous-même.</div>
+          <div style="font-size:11px; color:#8A96A0; margin-top:8px; text-align:center;">Télécharge un PDF récapitulatif, puis ouvre votre application mail — pensez à joindre le PDF téléchargé avant d'envoyer.</div>
         </div>
       </div>
     </div>
   `;
+}
+function collectRequestFormData(){
+  const p = new URLSearchParams(window.location.search);
+  const panne = document.getElementById('rf-panne').value.trim();
+  return {
+    ok: !!panne,
+    clientName: p.get('client') || '',
+    ville: p.get('ville') || '',
+    model: p.get('model') || '',
+    serial: p.get('serial') || '',
+    contact: document.getElementById('rf-contact').value.trim(),
+    tel: document.getElementById('rf-tel').value.trim(),
+    email: document.getElementById('rf-email').value.trim(),
+    arret: document.getElementById('rf-arret').checked,
+    dateApparition: document.getElementById('rf-date').value,
+    alarme: document.getElementById('rf-alarme').value.trim(),
+    commande: document.getElementById('rf-commande').value.trim(),
+    panne,
+    cc: p.get('cc') || null,
+  };
+}
+function generateRequestFormPDF(d){
+  if(!window.jspdf || !window.jspdf.jsPDF){ return null; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+  const marginX = 18; let y = 18;
+  try{ doc.addImage(LOGO_DATA_URI, 'PNG', marginX, y, 32, 4.3); }catch(e){}
+  doc.setFontSize(9); doc.setTextColor(90); doc.text('Matachana — Demande d\u2019intervention', marginX, y+9);
+  y += 20;
+  doc.setFontSize(15); doc.setFont(undefined,'bold'); doc.setTextColor(20);
+  doc.text('Demande d\u2019intervention', marginX, y); doc.setFont(undefined,'normal');
+  y += 10;
+
+  function section(title){
+    doc.setFontSize(10.5); doc.setFont(undefined,'bold'); doc.setTextColor(40);
+    doc.text(title, marginX, y); doc.setFont(undefined,'normal');
+    doc.setDrawColor(220); doc.line(marginX, y+1.5, 210-marginX, y+1.5);
+    y += 7;
+  }
+  function field(label, value){
+    doc.setFontSize(9.5); doc.setTextColor(110); doc.text(label, marginX, y);
+    doc.setTextColor(20); doc.text(String(value||'—'), marginX+45, y);
+    y += 6;
+  }
+
+  section('CLIENT');
+  field('Nom', d.clientName); field('Ville', d.ville); field('Contact', d.contact);
+  field('Téléphone', d.tel); field('Email', d.email); field('N° de commande client', d.commande);
+  y += 3;
+  section('MACHINE');
+  field('Type', d.model); field('N° de série', d.serial);
+  y += 3;
+  section('DESCRIPTION DE LA PANNE');
+  field('Machine à l\u2019arrêt', d.arret?'Oui':'Non'); field('Date d\u2019apparition', d.dateApparition||'—'); field('Code alarme', d.alarme);
+  doc.setFontSize(9.5); doc.setTextColor(110); doc.text('Description', marginX, y); y += 5;
+  doc.setTextColor(20);
+  const lines = doc.splitTextToSize(d.panne||'', 210-marginX*2);
+  doc.text(lines, marginX, y); y += lines.length*5 + 4;
+
+  doc.setFontSize(8); doc.setTextColor(150);
+  doc.text(`Document généré le ${fmtDateLong(iso(new Date()))} — à joindre à l\u2019email envoyé.`, marginX, 285);
+
+  const filename = `demande-intervention-${(d.serial||'machine').replace(/[^a-zA-Z0-9-]/g,'_')}.pdf`;
+  doc.save(filename);
+  return filename;
 }
 function buildRequestFormMailtoFromInputs(){
   const p = new URLSearchParams(window.location.search);
@@ -4375,7 +4440,9 @@ N° de série : ${serial}
 Machine à l'arrêt : ${arret?'Oui':'Non'}
 Date d'apparition : ${dateApparition}
 Code alarme : ${alarme}
-Description : ${panne}`;
+Description : ${panne}
+
+--- PDF récapitulatif téléchargé — pensez à le joindre à cet email avant de l'envoyer ---`;
   const ccEmail = p.get('cc');
   const ccParam = ccEmail ? `&cc=${encodeURIComponent(ccEmail)}` : '';
   return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}${ccParam}&body=${encodeURIComponent(body)}`;
@@ -4383,10 +4450,23 @@ Description : ${panne}`;
 function bindRequestFormEvents(){
   document.getElementById('rf-submit').addEventListener('click', ()=>{
     const errorBox = document.getElementById('rf-error');
-    const link = buildRequestFormMailtoFromInputs();
-    if(!link){ errorBox.style.display = 'block'; document.getElementById('rf-panne').focus(); return; }
+    const data = collectRequestFormData();
+    if(!data.ok){ errorBox.style.display = 'block'; document.getElementById('rf-panne').focus(); return; }
     errorBox.style.display = 'none';
-    window.location.href = link;
+    const link = buildRequestFormMailtoFromInputs();
+    if(!link) return;
+    const pdfFilename = generateRequestFormPDF(data);
+    if(!pdfFilename){
+      // le PDF n'a pas pu être généré (pas de connexion au chargement, bloqueur...) — on prévient
+      // clairement plutôt que de laisser croire qu'il a été joint, et on envoie quand même l'email.
+      const btn = document.getElementById('rf-submit');
+      const warn = document.createElement('div');
+      warn.style.cssText = 'font-size:11px; color:#B4562F; margin-top:8px; text-align:center;';
+      warn.textContent = "Le PDF n'a pas pu être généré (connexion instable) — l'email s'envoie quand même, sans pièce jointe.";
+      btn.insertAdjacentElement('afterend', warn);
+    }
+    // petit délai pour laisser le téléchargement du PDF démarrer avant de basculer vers l'email
+    setTimeout(()=>{ window.location.href = link; }, pdfFilename ? 400 : 0);
   });
 }
 /* ================= SCANNER QR PAR CAMÉRA (dans l'application, sans appareil photo externe) ================= */
