@@ -4580,7 +4580,7 @@ function renderTechContent(){
   if(techView==='equipe'){
     document.getElementById('content').innerHTML = viewPlanning(true);
     bindPlanningControls();
-    bindGanttDragDrop();
+    bindGanttDragDrop(true);
     return;
   }
   if(techView==='frais'){
@@ -10923,7 +10923,7 @@ function openQuickCreateCongeModal(technicianId, date){
     showToast('Congé/RTT enregistré sur le planning');
   };
 }
-function openQuickCreateInterventionModal(technicianId, date){
+function openQuickCreateInterventionModal(technicianId, date, defaultType){
   const allowedSecteurIds = getAllowedSecteurIds();
   const eligibleClients = allowedSecteurIds ? state.clients.filter(c=>allowedSecteurIds.includes(c.secteurId)) : state.clients;
   const t = tech(technicianId);
@@ -10946,10 +10946,10 @@ function openQuickCreateInterventionModal(technicianId, date){
         <textarea id="qc-panne" placeholder="Ce qui a été signalé..."></textarea>
         <label>Type d'intervention</label>
         <select id="qc-type">
-          <option value="corrective">Corrective</option>
-          <option value="preventive">Préventive</option>
-          <option value="devis">Devis</option>
-          <option value="installation">Installation</option>
+          <option value="corrective" ${defaultType==='corrective'?'selected':''}>Corrective</option>
+          <option value="preventive" ${defaultType==='preventive'?'selected':''}>Préventive</option>
+          <option value="devis" ${defaultType==='devis'?'selected':''}>Devis</option>
+          <option value="installation" ${defaultType==='installation'?'selected':''}>Installation</option>
         </select>
       </div>
       <div class="modal-foot">
@@ -11038,7 +11038,7 @@ async function duplicateIntervention(ivId){
   renderContent();
   showToast('Intervention dupliquée sur le même créneau');
 }
-function bindGanttDragDrop(){
+function bindGanttDragDrop(readOnly){
   // draggable sources: backlog cards + placed bars
   document.querySelectorAll('.job-card[data-iv], .gantt-bar[data-iv]').forEach(el=>{
     el.addEventListener('dragstart', e=>{
@@ -11118,21 +11118,34 @@ function bindGanttDragDrop(){
       });
     }
     cell.addEventListener('click', async (e)=>{
-      if(!pendingPlacementIvId) return;
-      const iv = state.interventions.find(i=>i.id===pendingPlacementIvId);
-      clearPlacementSelection();
-      if(!iv) return;
-      const rect = cell.getBoundingClientRect();
-      const clickedSlot = (e.clientY - rect.top) < rect.height/2 ? 'matin' : 'apres-midi';
-      const startDate = new Date(cell.dataset.date+'T00:00:00');
-      iv.technicianId = cell.dataset.tech;
-      iv.plannedDate = iso(startDate);
-      iv.plannedEndDate = iso(startDate);
-      iv.plannedSlot = clickedSlot;
-      if(cell.dataset.lane!==undefined) iv.laneHint = parseInt(cell.dataset.lane, 10);
-      if(iv.status!=='terminee') iv.status='planifiee';
-      await saveState(); renderTopbar(); renderContent();
-      showToast(`Intervention planifiée — ${SLOT_LABELS[clickedSlot]}`);
+      if(pendingPlacementIvId){
+        const iv = state.interventions.find(i=>i.id===pendingPlacementIvId);
+        clearPlacementSelection();
+        if(!iv) return;
+        const rect = cell.getBoundingClientRect();
+        const clickedSlot = (e.clientY - rect.top) < rect.height/2 ? 'matin' : 'apres-midi';
+        const startDate = new Date(cell.dataset.date+'T00:00:00');
+        iv.technicianId = cell.dataset.tech;
+        iv.plannedDate = iso(startDate);
+        iv.plannedEndDate = iso(startDate);
+        iv.plannedSlot = clickedSlot;
+        if(cell.dataset.lane!==undefined) iv.laneHint = parseInt(cell.dataset.lane, 10);
+        if(iv.status!=='terminee') iv.status='planifiee';
+        await saveState(); renderTopbar(); renderContent();
+        showToast(`Intervention planifiée — ${SLOT_LABELS[clickedSlot]}`);
+        return;
+      }
+      // case vide, aucune sélection en attente : clic direct pour créer une intervention avec ce
+      // technicien et cette date déjà pré-remplis — apparaît immédiatement sur le planning, sans
+      // avoir besoin de glisser-déposer ensuite. Désactivé en lecture seule (ex. « Mon équipe »)
+      // et si cette case a déjà une intervention (on laisse alors sa propre barre gérer le clic).
+      if(readOnly) return;
+      const alreadyHasSomething = state.interventions.some(iv=>
+        ivAssignedTo(iv,cell.dataset.tech) && iv.status!=='terminee' &&
+        iv.plannedDate && iv.plannedDate<=cell.dataset.date && (iv.plannedEndDate||iv.plannedDate)>=cell.dataset.date
+      );
+      if(alreadyHasSomething) return;
+      openQuickCreateInterventionModal(cell.dataset.tech, cell.dataset.date, 'preventive');
     });
   });
 
