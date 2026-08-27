@@ -7349,18 +7349,17 @@ async function generateExpensePDF(report){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'landscape' });
   const pageW = 297, marginX = 10;
-  let y = 10;
-  try{ doc.addImage(LOGO_DATA_URI, 'PNG', marginX, y, 30, 4); }catch(e){}
-  doc.setFontSize(15); doc.setFont(undefined,'bold'); doc.setTextColor(20);
-  doc.text('FEUILLE DE FRAIS', pageW/2, y+5, { align:'center' });
-  y += 12;
-  doc.setFontSize(9.5); doc.setFont(undefined,'normal'); doc.setTextColor(60);
+  let y = 9;
+  try{ doc.addImage(LOGO_DATA_URI, 'PNG', marginX, y, 28, 3.8); }catch(e){}
+  doc.setFontSize(14); doc.setFont(undefined,'bold'); doc.setTextColor(20);
+  doc.text('FEUILLE DE FRAIS', pageW/2, y+4.5, { align:'center' });
+  y += 10;
+  doc.setFontSize(9); doc.setFont(undefined,'normal'); doc.setTextColor(60);
   doc.text(`Technicien : ${report.technicianName}`, marginX, y);
-  doc.text(`Secteur : ${secteurLabel(report.secteurId)}`, 120, y);
-  doc.text(`Semaine du ${fmtDateLong(report.weekStart)}`, 210, y);
-  y += 6;
-  doc.text(`Kilométrage début de semaine : ${report.kmDebutSemaine||0} km`, marginX, y);
-  y += 6;
+  doc.text(`Secteur : ${secteurLabel(report.secteurId)}`, 110, y);
+  doc.text(`Semaine du ${fmtDateLong(report.weekStart)}`, 190, y);
+  doc.text(`Km début semaine : ${report.kmDebutSemaine||0} km`, 250, y);
+  y += 5;
 
   // ---- Grille façon Excel : catégories en lignes, jours en colonnes ----
   const dayHeaders = report.days.map((d,i)=> `${WEEK_DAYS[i].label}\n${fmtDate(new Date(d.date+'T00:00:00'))}`);
@@ -7388,9 +7387,9 @@ async function generateExpensePDF(report){
   doc.autoTable({
     startY: y,
     head, body, theme:'grid',
-    styles:{ fontSize:7.5, cellPadding:1.7, textColor:[40,40,40], lineColor:[195,195,195], lineWidth:0.1, valign:'middle' },
-    headStyles:{ fillColor:[18,49,63], textColor:255, fontStyle:'bold', halign:'center', fontSize:7.5 },
-    columnStyles:{ 0:{ cellWidth:40, fontStyle:'bold', halign:'left' } },
+    styles:{ fontSize:6.7, cellPadding:1, textColor:[40,40,40], lineColor:[195,195,195], lineWidth:0.1, valign:'middle' },
+    headStyles:{ fillColor:[18,49,63], textColor:255, fontStyle:'bold', halign:'center', fontSize:6.7 },
+    columnStyles:{ 0:{ cellWidth:36, fontStyle:'bold', halign:'left' } },
     margin:{ left:marginX, right:marginX },
     didParseCell: (data)=>{
       if(data.section==='body'){
@@ -7404,25 +7403,30 @@ async function generateExpensePDF(report){
       }
     },
   });
-  y = doc.lastAutoTable.finalY + 8;
 
-  const pageBottom = 195;
-  if(y > pageBottom-30){ doc.addPage(); y = 15; }
+  // Signatures ancrées à une position fixe proche du bas de la page (plutôt que juste après le
+  // tableau) : avec les 17 catégories réelles, le tableau à lui seul frôle déjà le bas de la page
+  // — un ancrage fixe garantit qu'elles restent toujours sur la même page que le tableau, avec un
+  // espacement constant et net, quel que soit le nombre exact de lignes remplies pour ce technicien.
+  const pageH = 210; // hauteur d'une page A4 paysage, en mm
+  const sigBlockHeight = 34;
+  const sigTop = Math.max(doc.lastAutoTable.finalY + 6, pageH - sigBlockHeight - 8);
+  let y2 = sigTop;
   doc.setFontSize(9); doc.setFont(undefined,'bold'); doc.setTextColor(20);
-  doc.text('Signatures', marginX, y); y += 4;
-  const sigTop = y;
+  doc.text('Signatures', marginX, y2); y2 += 4;
   doc.setDrawColor(150); doc.setFont(undefined,'normal'); doc.setFontSize(8.5); doc.setTextColor(80);
   if(report.signatureTechnicien){
-    try{ doc.addImage(report.signatureTechnicien, 'PNG', marginX, sigTop, 60, 22); }catch(e){}
+    try{ doc.addImage(report.signatureTechnicien, 'PNG', marginX, y2, 55, 18); }catch(e){}
   }
-  doc.line(marginX, sigTop+24, marginX+80, sigTop+24); doc.text('Technicien', marginX, sigTop+29);
+  doc.line(marginX, y2+20, marginX+75, y2+20); doc.text('Technicien', marginX, y2+25);
   // Signature automatique du responsable secteur Nord (Parinord) — tampon officiel fourni par l'entreprise
   const reportSecteurName = (secteurLabel(report.secteurId)||'').toLowerCase();
   if(reportSecteurName.includes('nord')){
-    try{ doc.addImage(STAMP_RESPONSABLE_NORD_DATA_URI, 'PNG', marginX+100, sigTop-4, 45, 28.6); }catch(e){}
+    try{ doc.addImage(STAMP_RESPONSABLE_NORD_DATA_URI, 'PNG', marginX+95, y2-3, 40, 25.4); }catch(e){}
   }
-  doc.line(marginX+100, sigTop+24, marginX+180, sigTop+24); doc.text('Responsable technique', marginX+100, sigTop+29);
-  y = sigTop + 36;
+  doc.line(marginX+95, y2+20, marginX+170, y2+20); doc.text('Responsable technique', marginX+95, y2+25);
+  y = y2 + 30;
+  const pageBottom = 195;
 
   if(report.piecesJointes.length){
     if(y>pageBottom-10){ doc.addPage(); y=15; }
