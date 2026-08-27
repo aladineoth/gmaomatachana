@@ -7404,21 +7404,10 @@ async function generateExpensePDF(report){
       }
     },
   });
-  y = doc.lastAutoTable.finalY + 10;
+  y = doc.lastAutoTable.finalY + 8;
 
   const pageBottom = 195;
-  if(y > pageBottom){ doc.addPage(); y = 15; }
-  doc.setFontSize(9); doc.setFont(undefined,'bold'); doc.setTextColor(20);
-  doc.text('Circuit de validation', marginX, y); y += 6;
-  doc.setFont(undefined,'normal'); doc.setTextColor(80);
-  const actionLabels = { soumise:'Soumise', validee:'Validée', rejetee:'Rejetée' };
-  (report.history||[]).forEach(h=>{
-    if(y>pageBottom){ doc.addPage(); y=15; }
-    doc.text(`${actionLabels[h.action]||h.action} par ${h.by} (${h.role}) — ${new Date(h.at).toLocaleString('fr-FR')}`, marginX, y); y += 5;
-  });
-  y += 6;
-
-  if(y > pageBottom-20){ doc.addPage(); y = 15; }
+  if(y > pageBottom-30){ doc.addPage(); y = 15; }
   doc.setFontSize(9); doc.setFont(undefined,'bold'); doc.setTextColor(20);
   doc.text('Signatures', marginX, y); y += 4;
   const sigTop = y;
@@ -7433,7 +7422,7 @@ async function generateExpensePDF(report){
     try{ doc.addImage(STAMP_RESPONSABLE_NORD_DATA_URI, 'PNG', marginX+100, sigTop-4, 45, 28.6); }catch(e){}
   }
   doc.line(marginX+100, sigTop+24, marginX+180, sigTop+24); doc.text('Responsable technique', marginX+100, sigTop+29);
-  y = sigTop + 40;
+  y = sigTop + 36;
 
   if(report.piecesJointes.length){
     if(y>pageBottom-10){ doc.addPage(); y=15; }
@@ -9363,6 +9352,14 @@ function adminSectionToggl(){
         <div class="field-hint" style="margin-top:16px;">Cette première étape vérifie uniquement que la connexion fonctionne (jeton d'accès obtenu + informations de votre compte). L'import réel des données (équipes, tâches) dans le GMAO sera l'étape suivante, une fois la connexion confirmée.</div>
       </div>
       <div class="card section-gap" style="padding:18px 20px; margin-top:16px;">
+        <div class="section-title">${icon('calendar')} Importer un calendrier .ics depuis Toggl Plan</div>
+        <div class="field-hint" style="margin-top:0; margin-bottom:14px;">Plus simple que l'export JSON : dans Toggl Plan, utilisez l'option d'export ou d'abonnement au calendrier (souvent dans les réglages de l'équipe ou du planning) pour obtenir un fichier .ics, puis déposez-le ici. Crée les échéances avec leur date connue, sans technicien assigné (à répartir ensuite avec les outils ci-dessous) — ce format ne contient pas l'information de qui est affecté à quoi.</div>
+        <label style="margin-top:0;">Fichier .ics</label>
+        <input type="file" id="ics-import-file" accept=".ics,text/calendar">
+        <button class="btn btn-primary btn-sm" id="ics-import-analyze-btn" style="margin-top:12px;">Analyser</button>
+        <div id="ics-import-preview" style="margin-top:16px;"></div>
+      </div>
+      <div class="card section-gap" style="padding:18px 20px; margin-top:16px;">
         <div class="section-title">${icon('user')} Attribution rapide par secteur</div>
         <div class="field-hint" style="margin-top:0; margin-bottom:14px;">Répartit les interventions importées encore sans technicien entre les techniciens réels du secteur choisi, à leurs dates déjà prévues — sans rien deviner de plus précis. À utiliser si vous voulez juste que tout soit planifié rapidement, quitte à trier ensuite au cas par cas sur le planning (glisser-déposer).</div>
         <select id="quick-assign-secteur-select" style="width:auto; min-width:260px;">
@@ -9607,6 +9604,107 @@ async function quickAssignBySecteur(secteurId){
   await saveState();
   logAudit('quick_assign_secteur', `${candidates.length} intervention(s) réparties entre ${secteurTechs.length} technicien(s) — ${secteurLabel(secteurId)}`);
   showToast(`${candidates.length} intervention(s) réparties${noDateCount?` — ${noDateCount} sans date restent à planifier manuellement`:''}`);
+  renderContent();
+}
+/* ---------------- Import d'un calendrier .ics (export/abonnement Toggl Plan) ----------------
+   Bien plus simple à obtenir qu'un export JSON (pas besoin des outils de développeur du
+   navigateur), mais ce format ne transporte pas l'information « qui est affecté » — seulement
+   la date et le nom de la tâche. On crée donc des échéances sans technicien, à répartir ensuite
+   avec les outils déjà en place plus bas sur cette page. */
+function parseICS(text){
+  const events = [];
+  const blocks = text.split('BEGIN:VEVENT').slice(1);
+  blocks.forEach(block=>{
+    const endIdx = block.indexOf('END:VEVENT');
+    const content = (endIdx>=0 ? block.slice(0,endIdx) : block)
+      .replace(/\r\n[ \t]/g, '') // déplie les lignes repliées selon la norme iCalendar
+      .replace(/\n[ \t]/g, '');
+    const lines = content.split(/\r?\n/);
+    let dtstart = null, summary = null, uid = null;
+    lines.forEach(line=>{
+      if(line.startsWith('DTSTART')){
+        const m = line.match(/(\d{8})/);
+        if(m) dtstart = `${m[1].slice(0,4)}-${m[1].slice(4,6)}-${m[1].slice(6,8)}`;
+      } else if(line.startsWith('SUMMARY:')){
+        summary = line.slice('SUMMARY:'.length).trim();
+      } else if(line.startsWith('UID:')){
+        uid = line.slice('UID:'.length).trim();
+      }
+    });
+    if(dtstart && summary) events.push({ dtstart, summary, uid });
+  });
+  return events;
+}
+let icsImportAnalysis = null;
+async function analyzeIcsImport(){
+  const previewBox = document.getElementById('ics-import-preview');
+  const file = document.getElementById('ics-import-file').files[0];
+  if(!file){ showToast('Merci de déposer un fichier .ics'); return; }
+  previewBox.innerHTML = `<div class="helper-note">Analyse en cours...</div>`;
+  try{
+    const text = await file.text();
+    const events = parseICS(text);
+    if(!events.length){ previewBox.innerHTML = `<div class="helper-note" style="color:#B23B3B;">Aucun événement trouvé dans ce fichier — vérifiez qu'il s'agit bien d'un export .ics valide.</div>`; return; }
+
+    const results = { toCreate:[], alreadyExists:0, noClientMatch:[], excludedLeave:0 };
+    const queuedKeys = new Set();
+    events.forEach(ev=>{
+      if(TOGGL_LEAVE_PATTERN.test(ev.summary)){ results.excludedLeave++; return; }
+      const parsed = parseTogglTaskName(ev.summary);
+      const cl = findBestClientMatch(parsed.client, state.clients);
+      if(!cl){ results.noClientMatch.push(ev.summary); return; }
+      const key = cl.id + '|' + ev.dtstart;
+      const already = state.interventions.some(iv=>iv.clientId===cl.id && iv.plannedDate===ev.dtstart);
+      if(already || queuedKeys.has(key)){ results.alreadyExists++; return; }
+      queuedKeys.add(key);
+      const m = machinesOf(cl.id)[0] || null;
+      results.toCreate.push({ client:cl, machine:m, date:ev.dtstart, summary:ev.summary });
+    });
+
+    icsImportAnalysis = results;
+    previewBox.innerHTML = `
+      <div class="card" style="padding:14px 16px; background:#FBFAF6;">
+        <div style="font-weight:700; margin-bottom:8px;">Aperçu de l'import</div>
+        <div class="helper-note" style="margin:0 0 4px;">✅ ${results.toCreate.length} échéance(s) qui seront créées, sans technicien</div>
+        <div class="helper-note" style="margin:0 0 4px;">↺ ${results.alreadyExists} déjà présente(s) dans le GMAO — ignorée(s)</div>
+        <div class="helper-note" style="margin:0 0 4px;">🏖️ ${results.excludedLeave} congé(s)/RTT exclu(s)</div>
+        <div class="helper-note" style="margin:0 0 4px; color:${results.noClientMatch.length?'#B23B3B':'inherit'};">⚠️ ${results.noClientMatch.length} tâche(s) sans client reconnu</div>
+        ${results.toCreate.some(r=>!r.machine) ? `<div class="helper-note" style="color:#B4562F;">Certains clients reconnus n'ont aucune machine enregistrée — ces lignes seront ignorées à la confirmation.</div>` : ''}
+        <button class="btn btn-primary btn-sm" id="ics-import-confirm-btn" style="margin-top:10px;" ${results.toCreate.length===0?'disabled':''}>Créer ${results.toCreate.length} échéance(s)</button>
+        ${results.noClientMatch.length ? `
+          <details style="margin-top:10px;"><summary style="cursor:pointer; font-size:12px; color:var(--ink-soft);">Voir les tâches sans client reconnu</summary>
+            <div style="margin-top:8px; font-size:11.5px; max-height:200px; overflow-y:auto;">
+              ${results.noClientMatch.map(n=>`<div>${escapeHtml(n)}</div>`).join('')}
+            </div>
+          </details>
+        ` : ''}
+      </div>
+    `;
+  }catch(e){
+    console.error(e);
+    previewBox.innerHTML = `<div class="helper-note" style="color:#B23B3B;">Erreur de lecture du fichier : ${escapeHtml(e.message||String(e))}</div>`;
+  }
+}
+async function confirmIcsImport(){
+  if(!icsImportAnalysis) return;
+  const toCreate = icsImportAnalysis.toCreate.filter(r=>r.machine);
+  if(!confirm(`Créer ${toCreate.length} échéance(s), sans technicien assigné ?`)) return;
+  toCreate.forEach(r=>{
+    state.interventions.push({
+      id:uid('iv'), clientId:r.client.id, machineId:r.machine.id, serial:r.machine.serial,
+      panne:`Échéance importée — ${r.summary}`, status:'creee', type:'preventive', priseEnCharge:'matachana',
+      piecesNecessaires:'', piecesListe:[], priorite:'normale', notesBureau:'',
+      technicianId:null, plannedDate:r.date, plannedEndDate:r.date, numeroAppel:null,
+      valide:false, valideeAt:null, valideePar:null,
+      piecesCommandees:false, piecesCommandeesAt:null, piecesCommandeesPar:null,
+      clientConfirmation:null, clientProposedDate:null, clientNote:null,
+      createdAt:iso(new Date()), createdBy:'import_revisions',
+    });
+  });
+  await saveState();
+  logAudit('ics_import', `${toCreate.length} échéance(s) importée(s) depuis un calendrier .ics Toggl Plan`);
+  showToast(`${toCreate.length} échéance(s) créée(s) — à répartir avec les outils ci-dessous`);
+  icsImportAnalysis = null;
   renderContent();
 }
 async function analyzeTogglImport(){
@@ -10565,6 +10663,10 @@ function bindContentEvents(){
     });
     document.getElementById('toggl-import-analyze-btn')?.addEventListener('click', analyzeTogglImport);
     document.getElementById('toggl-assign-analyze-btn')?.addEventListener('click', analyzeTogglAssign);
+    document.getElementById('ics-import-analyze-btn')?.addEventListener('click', analyzeIcsImport);
+    document.getElementById('ics-import-preview')?.addEventListener('click', (e)=>{
+      if(e.target && e.target.id==='ics-import-confirm-btn') confirmIcsImport();
+    });
     document.getElementById('quick-assign-secteur-btn')?.addEventListener('click', ()=>{
       const secteurId = document.getElementById('quick-assign-secteur-select').value;
       quickAssignBySecteur(secteurId);
