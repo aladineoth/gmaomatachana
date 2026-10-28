@@ -8263,7 +8263,7 @@ function adminSectionImportRevisions(){
       </div>
       <div class="card section-gap" style="padding:18px 20px; margin-top:16px;">
         <div class="section-title">Appliquer une proposition de planning (assignée directement aux techniciens)</div>
-        <div class="field-hint" style="margin-top:0;">Déposez un fichier CSV avec les colonnes <code>serie, technicien, date, type</code> (type = <code>mp1</code> ou <code>controle</code>). Chaque ligne crée une intervention déjà planifiée (date + technicien), retrouvé par son prénom exact.</div>
+        <div class="field-hint" style="margin-top:0;">Déposez un fichier CSV avec les colonnes <code>serie, technicien, date, type</code> (type = <code>mp1</code> ou <code>controle</code>). Chaque ligne crée une intervention déjà planifiée (date + technicien). Le technicien est retrouvé par son prénom, son nom ou les deux (majuscules et accents ignorés) ; ceux qui n'existent pas encore peuvent être créés automatiquement.</div>
         <input type="file" id="import-sched-file" accept=".csv" style="margin-top:12px;">
         <button class="btn btn-primary btn-sm" id="import-sched-analyze-btn" style="margin-top:12px;">Analyser</button>
         <div id="import-sched-preview" style="margin-top:16px;"></div>
@@ -8327,6 +8327,31 @@ async function confirmCtImport(){
   importCtAnalysis = null;
   renderContent();
 }
+function normalizePersonName(s){
+  return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z ]+/g,' ').split(/\s+/).filter(Boolean);
+}
+/* Retrouve un technicien à partir d'un nom saisi librement : nom complet (dans n'importe quel ordre),
+   prénom seul ou nom seul — en ignorant majuscules et accents. Renvoie null si aucun ou plusieurs candidats. */
+function findTechByLooseName(raw){
+  const words = normalizePersonName(raw);
+  if(!words.length) return null;
+  const candidates = state.technicians.filter(t=>{
+    const tw = normalizePersonName(t.name);
+    return words.every(w=>tw.includes(w));
+  });
+  if(candidates.length===1) return candidates[0];
+  if(candidates.length>1){
+    const exact = candidates.filter(t=>normalizePersonName(t.name).length===words.length);
+    if(exact.length===1) return exact[0];
+    return null;
+  }
+  // repli : le fichier donne « Prénom NOM », la GMAO ne connaît que le prénom (ou l'inverse)
+  const partial = state.technicians.filter(t=>{
+    const tw = normalizePersonName(t.name);
+    return tw.length && tw.every(w=>words.includes(w));
+  });
+  return partial.length===1 ? partial[0] : null;
+}
 function parseScheduleCsv(text){
   const lines = text.split(/\r?\n/).filter(l=>l.trim());
   const header = lines[0].split(',').map(h=>h.trim().toLowerCase());
@@ -8348,15 +8373,17 @@ async function analyzeSchedImport(){
     const rows = parseScheduleCsv(text);
     const serialIndex = {};
     state.machines.forEach(m=>{ if(m.serial) serialIndex[m.serial.trim().toUpperCase()] = m; });
-    const techByFirstName = {};
-    state.technicians.forEach(t=>{ const first = (t.name||'').trim().split(/\s+/)[0].toUpperCase(); techByFirstName[first] = t; });
 
     const results = { toCreate:[], noMachine:[], noTech:[], alreadyPlanned:0 };
     rows.forEach(r=>{
       const m = serialIndex[r.serie.trim().toUpperCase()];
       if(!m){ results.noMachine.push(r); return; }
-      const tech = techByFirstName[r.technicien.trim().toUpperCase()];
-      if(!tech){ results.noTech.push(r); return; }
+      const tech = findTechByLooseName(r.technicien);
+      if(!tech){
+        if(r.technicien.trim()) results.noTech.push({ row:r, machine:m });
+        else results.noTechName = (results.noTechName||0)+1;
+        return;
+      }
       const existingNear = state.interventions.some(iv=> iv.machineId===m.id && iv.type==='preventive' && iv.status!=='terminee' &&
         iv.plannedDate && Math.abs(new Date(iv.plannedDate)-new Date(r.date))<15*86400000);
       if(existingNear){ results.alreadyPlanned++; return; }
@@ -8373,9 +8400,21 @@ async function analyzeSchedImport(){
         <div class="helper-note" style="margin:0 0 4px;">Répartition : ${Object.entries(techCounts).map(([n,c])=>`${escapeHtml(n)} (${c})`).join(', ')}</div>
         <div class="helper-note" style="margin:0 0 4px;">↺ ${results.alreadyPlanned} déjà planifiée(s) à une date proche (ignorée(s))</div>
         <div class="helper-note" style="margin:0 0 4px; color:${results.noMachine.length?'#B23B3B':'inherit'};">${icon('warning')} ${results.noMachine.length} numéro(s) de série non trouvé(s)</div>
-        <div class="helper-note" style="margin:0 0 4px; color:${results.noTech.length?'#B23B3B':'inherit'};">${icon('warning')} ${results.noTech.length} technicien(s) non trouvé(s) par prénom</div>
+        ${results.noTech.length ? (()=>{
+          const missing = [...new Set(results.noTech.map(x=>x.row.technicien.trim()))];
+          const defaultSec = (state.secteurs.find(s=>/nord/i.test(s.name))||state.secteurs[0]||{}).id;
+          return `
+          <div class="confirm-banner attente" style="margin-top:8px;">
+            <div style="font-weight:700; font-size:12.5px; margin-bottom:4px;">${icon('warning')} ${results.noTech.length} visite(s) pour ${missing.length} technicien(s) absent(s) de la GMAO : ${missing.map(t=>escapeHtml(t)).join(', ')}</div>
+            <label style="display:flex; align-items:center; gap:7px; margin:8px 0 0; font-weight:600;"><input type="checkbox" id="import-sched-create-techs" checked style="width:auto;"> Créer automatiquement ces techniciens</label>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:6px; font-size:12px;">Secteur :
+              <select id="import-sched-create-secteur" style="width:auto;">${state.secteurs.map(s=>`<option value="${s.id}" ${s.id===defaultSec?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}</select>
+            </div>
+            <div class="field-hint">Mot de passe de connexion attribué : <strong>${DEMO_PASSWORD}</strong> (modifiable ensuite dans « Techniciens »).</div>
+          </div>`;
+        })() : ''}
+        ${results.noTechName ? `<div class="helper-note" style="margin:6px 0 0;">${results.noTechName} ligne(s) sans nom de technicien ignorée(s).</div>` : ''}
         <button class="btn btn-primary btn-sm" id="import-sched-confirm-btn" style="margin-top:10px;">Confirmer et planifier</button>
-        ${results.noTech.length ? `<details style="margin-top:10px;"><summary style="cursor:pointer; font-size:12px; color:var(--ink-soft);">Voir les techniciens non trouvés</summary><div style="margin-top:8px; font-size:11.5px;">${[...new Set(results.noTech.map(r=>r.technicien))].map(t=>escapeHtml(t)).join(', ')}</div></details>` : ''}
       </div>
     `;
   }catch(e){
@@ -8385,8 +8424,27 @@ async function analyzeSchedImport(){
 }
 async function confirmSchedImport(){
   if(!importSchedAnalysis) return;
-  const { toCreate } = importSchedAnalysis;
-  if(!confirm(`Planifier ${toCreate.length} intervention(s) directement sur les techniciens ?`)) return;
+  const toCreate = importSchedAnalysis.toCreate.slice();
+  const createBox = document.getElementById('import-sched-create-techs');
+  let createdTechs = 0;
+  if(importSchedAnalysis.noTech.length && createBox && createBox.checked){
+    const secteurId = document.getElementById('import-sched-create-secteur')?.value || null;
+    const missing = [...new Set(importSchedAnalysis.noTech.map(x=>x.row.technicien.trim()))];
+    if(!confirm(`Créer ${missing.length} technicien(s) (${missing.join(', ')}) et planifier ${toCreate.length + importSchedAnalysis.noTech.length} intervention(s) ?`)) return;
+    const hashed = await sha256Hex(DEMO_PASSWORD);
+    missing.forEach(name=>{
+      if(findTechByLooseName(name)) return;
+      let username = slugify(name).replace(/-/g,'.'); let n = 2;
+      while(usernameTaken(state.technicians, username)) username = slugify(name).replace(/-/g,'.') + (n++);
+      state.technicians.push({ id:uid('t'), name, color:TECH_COLORS[state.technicians.length % TECH_COLORS.length], secteurId, username, password:hashed, failedLogins:0, lockedUntil:null });
+      createdTechs++;
+    });
+    importSchedAnalysis.noTech.forEach(({row, machine})=>{
+      const tech = findTechByLooseName(row.technicien);
+      if(tech) toCreate.push({ row, machine, tech });
+    });
+  } else if(!confirm(`Planifier ${toCreate.length} intervention(s) directement sur les techniciens ?`)) return;
+  if(createdTechs) logAudit('account_created', `${createdTechs} technicien(s) créé(s) par l'import du planning`);
   toCreate.forEach(({row, machine, tech})=>{
     state.interventions.push({
       id:uid('iv'), clientId:machine.clientId, machineId:machine.id, serial:machine.serial,
