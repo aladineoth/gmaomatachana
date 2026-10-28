@@ -176,13 +176,10 @@
   .app-shell{display:flex; flex:1; min-width:0;}
   .sidebar{
     width:230px; flex:none; background:linear-gradient(180deg,#0e2338,#16324c); color:#c9d6e4;
-    display:flex; flex-direction:column; padding:22px 14px 0; position:sticky; top:0; height:100vh;
+    display:flex; flex-direction:column; padding:22px 14px; position:sticky; top:0; height:100vh;
     transition:width .16s ease, padding .16s ease; overflow:hidden;
   }
-  .sidebar-scroll{flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; padding-bottom:10px;}
-  .sidebar-scroll::-webkit-scrollbar{width:5px;}
-  .sidebar-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15); border-radius:3px;}
-  .sidebar.collapsed{width:60px; padding:22px 8px 0;}
+  .sidebar.collapsed{width:60px; padding:22px 8px;}
   .sidebar.collapsed .brand-tag, .sidebar.collapsed .brand-sub, .sidebar.collapsed .client-id-box,
   .sidebar.collapsed .nav-group-label, .sidebar.collapsed .sidebar-foot, .sidebar.collapsed .brand > span,
   .sidebar.collapsed .brand-logo{display:none;}
@@ -207,7 +204,7 @@
   .nav-item:hover{background:rgba(255,255,255,.06); color:#fff;}
   .nav-item.active{background:rgba(29,122,114,.28); color:#fff; border-color:rgba(29,122,114,.55);}
   .nav-item .badge{margin-left:auto; background:var(--amber); color:#3A2A0B; font-family:var(--font-mono); font-size:10.5px; font-weight:600; padding:1px 6px; border-radius:20px; min-width:18px; text-align:center;}
-  .sidebar-foot{padding:10px 8px 14px; font-size:11px; color:#6D8A90; border-top:1px solid rgba(255,255,255,.09); padding-top:14px; flex:none;}
+  .sidebar-foot{margin-top:auto; padding:10px 8px 2px; font-size:11px; color:#6D8A90; border-top:1px solid rgba(255,255,255,.09); padding-top:14px;}
   .reset-link{color:#8FB7AE; cursor:pointer; text-decoration:underline; text-underline-offset:2px;}
   .client-id-box{background:rgba(255,255,255,.07); border-radius:9px; padding:10px 11px; margin-bottom:16px;}
   .client-id-box .ci-name{font-weight:600; font-size:13px; color:#fff; margin-bottom:2px;}
@@ -316,7 +313,7 @@
   .kpi-tile .k-trend{font-size:10.5px; font-weight:700; font-family:var(--font-mono);}
   .kpi-tile .k-trend.up{color:#3C8560;} .kpi-tile .k-trend.down{color:#B4562F;}
   .kpi-tile .k-sub{font-size:10.5px; color:var(--ink-faint); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  @media (max-width:900px){ .kpi-strip{grid-template-columns:repeat(2,1fr);} .kpi-tile:last-child{grid-column:1 / -1;} }
+  @media (max-width:900px){ .kpi-strip{grid-template-columns:repeat(2,1fr);} }
   .gantt-scroll.placement-active{cursor:default;}
   .gantt-scroll.placement-active .gantt-daybg{cursor:pointer;}
   .gantt-scroll.placement-active .gantt-daybg:hover{background:rgba(232,149,47,.28) !important;}
@@ -395,10 +392,8 @@
   .gantt-techname .tname{font-weight:600; font-size:10.5px; color:var(--tg-text); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;}
   .gantt-techname .tname .muted{color:var(--tg-text-soft) !important; font-size:9.5px;}
   .gantt-daybg{border-right:1px solid var(--tg-border); border-bottom:1px solid var(--tg-border); background:var(--tg-bg); transition:background .1s ease; position:relative;}
-  .gantt-daybg::after{content:''; position:absolute; left:3px; right:3px; top:50%; border-top:1px dashed var(--tg-border); pointer-events:none; opacity:.7;}
-  .gantt-daybg .slot-hint{position:absolute; left:3px; font-size:7px; font-weight:700; color:var(--tg-border); letter-spacing:.3px; pointer-events:none; text-transform:uppercase;}
-  .gantt-daybg .slot-hint.top{top:2px;}
-  .gantt-daybg .slot-hint.bottom{bottom:2px;}
+  .gantt-daybg::after{content:''; position:absolute; left:4px; right:4px; top:50%; border-top:1px dashed transparent; pointer-events:none;}
+  .gantt-daybg:hover::after{border-top-color:var(--tg-border);}
   .gantt-daybg.dragover-upper{background:linear-gradient(to bottom, var(--tg-accent-soft) 0 50%, var(--tg-bg) 50% 100%);}
   .gantt-daybg.dragover-lower{background:linear-gradient(to bottom, var(--tg-bg) 0 50%, var(--tg-accent-soft) 50% 100%);}
   .gantt-daybg.weekend{background:#0A1D26;}
@@ -621,13 +616,9 @@
     }
     .sidebar .brand, .sidebar .brand-tag, .sidebar .brand-sub, .sidebar .client-id-box,
     .sidebar .sidebar-foot, .sidebar .pwa-install-btn, .sidebar .nav-group-label{display:none;}
-    .sidebar .sidebar-scroll{
-      display:flex; flex-direction:row; align-items:center; overflow-x:auto; overflow-y:hidden;
-      flex:1; min-width:0; gap:2px; padding-bottom:0;
-    }
     .sidebar .nav-item{
       flex-direction:column; gap:3px; padding:6px 10px; font-size:10px; text-align:center;
-      margin-bottom:0; white-space:nowrap; border-radius:10px; flex:none;
+      margin-bottom:0; white-space:nowrap; border-radius:10px;
     }
     .sidebar .nav-item svg{width:19px; height:19px;}
     .sidebar .nav-item .badge{position:absolute; margin-left:0; transform:translate(10px,-8px);}
@@ -650,8 +641,6 @@
     .modal{max-height:92vh;}
     .portal-choices{grid-template-columns:1fr;}
     .row2{grid-template-columns:1fr;}
-    .kanban-board{grid-template-columns:repeat(5, 78vw);}
-    .dash2-tiles{grid-template-columns:repeat(2, 1fr);}
     /* Un bouton d'installation flottant remplace celui (masqué) de la sidebar */
     .pwa-install-fab{
       display:none; position:fixed; right:16px; bottom:calc(84px + env(safe-area-inset-bottom)); z-index:41;
@@ -660,6 +649,54 @@
     }
     .pwa-install-fab.visible{display:flex;}
   }
+
+  /* ============ Style « Toggl Plan » — en-tête et cellules (tous thèmes) ============ */
+  .gantt-daycell-head{display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:2px; padding:4px 0 6px; text-transform:none;}
+  .gantt-daycell-head .dh-top{height:12px; width:100%; position:relative; display:flex; justify-content:center; align-items:center;}
+  .gantt-daycell-head .dh-month{font-size:8.5px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:#7B5CF0; white-space:nowrap; position:absolute; left:3px;}
+  .gantt-daycell-head .dh-week{font-size:8.5px; font-weight:600; color:var(--tg-text-soft); position:absolute; right:3px;}
+  .gantt-daycell-head .dh-label{font-size:13.5px; font-weight:500; color:var(--tg-text); white-space:nowrap; padding:1px 5px; border-radius:4px;}
+  .gantt-daycell-head .dh-label .dnum{display:inline; margin:0; font-family:var(--font-body); font-size:13.5px;}
+  .gantt-daycell-head.weekend .dh-label{color:var(--tg-text-soft);}
+  .gantt-daycell-head.today .dh-label{background:#E8584B; color:#fff; font-weight:700;}
+  .gantt-daycell-head.today .dh-label .dnum{color:#fff;}
+  .gantt-daycell-head.week-start{box-shadow:inset 1px 0 0 var(--tg-border);}
+
+  /* ============ Thème clair = rendu Toggl Plan ============ */
+  body.tg-light{ --tg-bg:#FFFFFF; --tg-bg-alt:#FFFFFF; --tg-border:#ECECEF; --tg-text:#2B2B33; --tg-text-soft:#9A9AA6; }
+  body.tg-light .gantt-scroll{border-color:#E6E6EA;}
+  body.tg-light .gantt-daycell-head, body.tg-light .gantt-daycell-head.weekend, body.tg-light .gantt-daycell-head.today{background:#fff; border-right:none;}
+  body.tg-light .gantt-daycell-head .day-pulse{display:none;}
+  body.tg-light .gantt-daybg{background:#F6F6F8; border-bottom-color:transparent; border-right:1px solid #E9E9EE;}
+  body.tg-light .gantt-daybg.weekend{background:#ECECF0;}
+  body.tg-light .gantt-daybg.today-col, body.tg-light .gantt-daybg.weekend.today-col{background:#F6DDD8;}
+  body.tg-light .gantt-techname{background:#fff; border-right:1px solid #ECECEF; border-bottom:6px solid #fff;}
+  .gantt-techname .tname{flex:none; min-height:13px;}
+  body.tg-light .gantt-techname .tname{color:#6E6E7A; font-weight:500; font-size:11px;}
+  body.tg-light .tech-ring{width:38px; height:38px;}
+  body.tg-light .gantt-team-band{background:#fff; color:#2B2B33; border-bottom:1px solid #ECECEF; font-size:12px;}
+  body.tg-light .gantt-team-band .team-count{color:#9A9AA6;}
+  body.tg-light .gantt-corner{background:#fff;}
+
+  /* Barres : couleurs pleines, texte blanc, comme Toggl Plan */
+  body.tg-light .gantt-bar{
+    height:40px; margin:0 1px; border-radius:3px; padding:3px 7px; justify-content:flex-start;
+    border-left-width:0 !important; box-shadow:none; color:#fff;
+  }
+  body.tg-light .gantt-bar:hover{box-shadow:0 3px 8px rgba(0,0,0,.18);}
+  body.tg-light .gantt-bar .st-dot{display:none;}
+  body.tg-light .gantt-bar .gb-client{font-size:13px; font-weight:700; line-height:1.25;}
+  body.tg-light .gantt-bar .gb-serial{font-family:var(--font-body); font-size:10.5px; font-weight:500; opacity:.85; margin-top:1px;}
+  body.tg-light .gantt-bar.status-rouge{background:#F2271F; color:#fff;}
+  body.tg-light .gantt-bar.status-vert{background:#8EE53F; color:#2B4A10;}
+  body.tg-light .gantt-bar.status-orange{background:#F7A21B; color:#fff;}
+  body.tg-light .gantt-bar.status-gris{background:#CFD3D9; color:#3C4048;}
+  body.tg-light .gantt-bar.status-bleu{background:#3D8AF7; color:#fff;}
+  body.tg-light .gantt-bar.status-anthracite{background:#4A4F55; color:#fff;}
+  body.tg-light .gantt-bar.status-noir{background:#2A3136; color:#fff; border:none;}
+  body.tg-light .gantt-bar::after{border-color:transparent rgba(255,255,255,.55) transparent transparent;}
+  body.tg-light .gantt-bar.terminee{opacity:.45;}
+  body.tg-light .gantt-bar.urgente{outline:2px solid #FFD23F;}
 </style>
 </head>
 <body>
@@ -1102,8 +1139,16 @@ let currentPlanningWeekStart = startOfWeek(new Date());
 let techView = 'mine'; // 'mine' | 'equipe' | 'scan' — dans l'espace technicien
 let currentTechWeekStart = startOfWeek(new Date());
 let ganttDays = [];           // set at each planning render
-const GANTT_COL_W = 50;
-const GANTT_NAME_W = 64;
+const GANTT_COL_W = 58;
+const DOW_LETTERS = ['D','L','M','M','J','V','S'];
+function isoWeekNumber(d){
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = dt.getUTCDay() || 7;
+  dt.setUTCDate(dt.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(dt.getUTCFullYear(),0,1));
+  return Math.ceil((((dt - yearStart) / 86400000) + 1) / 7);
+}
+const GANTT_NAME_W = 76;
 let dragMeta = null;          // { id, mode: 'new'|'move', duration }
 
 /* ---------------- date utils ---------------- */
@@ -4333,76 +4378,11 @@ function renderRequestForm(){
           <div id="rf-error" style="color:#B4562F; font-size:12px; margin-top:10px; display:none;">Merci de décrire la panne avant d'envoyer.</div>
 
           <button id="rf-submit" style="width:100%; margin-top:18px; padding:13px; background:#12313F; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">${icon('mail')} Envoyer la demande par email</button>
-          <div style="font-size:11px; color:#8A96A0; margin-top:8px; text-align:center;">Télécharge un PDF récapitulatif, puis ouvre votre application mail — pensez à joindre le PDF téléchargé avant d'envoyer.</div>
+          <div style="font-size:11px; color:#8A96A0; margin-top:8px; text-align:center;">Ouvre votre application mail habituelle — vous validez l'envoi vous-même.</div>
         </div>
       </div>
     </div>
   `;
-}
-function collectRequestFormData(){
-  const p = new URLSearchParams(window.location.search);
-  const panne = document.getElementById('rf-panne').value.trim();
-  return {
-    ok: !!panne,
-    clientName: p.get('client') || '',
-    ville: p.get('ville') || '',
-    model: p.get('model') || '',
-    serial: p.get('serial') || '',
-    contact: document.getElementById('rf-contact').value.trim(),
-    tel: document.getElementById('rf-tel').value.trim(),
-    email: document.getElementById('rf-email').value.trim(),
-    arret: document.getElementById('rf-arret').checked,
-    dateApparition: document.getElementById('rf-date').value,
-    alarme: document.getElementById('rf-alarme').value.trim(),
-    commande: document.getElementById('rf-commande').value.trim(),
-    panne,
-    cc: p.get('cc') || null,
-  };
-}
-function generateRequestFormPDF(d){
-  if(!window.jspdf || !window.jspdf.jsPDF){ return null; }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
-  const marginX = 18; let y = 18;
-  try{ doc.addImage(LOGO_DATA_URI, 'PNG', marginX, y, 32, 4.3); }catch(e){}
-  doc.setFontSize(9); doc.setTextColor(90); doc.text('Matachana — Demande d\u2019intervention', marginX, y+9);
-  y += 20;
-  doc.setFontSize(15); doc.setFont(undefined,'bold'); doc.setTextColor(20);
-  doc.text('Demande d\u2019intervention', marginX, y); doc.setFont(undefined,'normal');
-  y += 10;
-
-  function section(title){
-    doc.setFontSize(10.5); doc.setFont(undefined,'bold'); doc.setTextColor(40);
-    doc.text(title, marginX, y); doc.setFont(undefined,'normal');
-    doc.setDrawColor(220); doc.line(marginX, y+1.5, 210-marginX, y+1.5);
-    y += 7;
-  }
-  function field(label, value){
-    doc.setFontSize(9.5); doc.setTextColor(110); doc.text(label, marginX, y);
-    doc.setTextColor(20); doc.text(String(value||'—'), marginX+45, y);
-    y += 6;
-  }
-
-  section('CLIENT');
-  field('Nom', d.clientName); field('Ville', d.ville); field('Contact', d.contact);
-  field('Téléphone', d.tel); field('Email', d.email); field('N° de commande client', d.commande);
-  y += 3;
-  section('MACHINE');
-  field('Type', d.model); field('N° de série', d.serial);
-  y += 3;
-  section('DESCRIPTION DE LA PANNE');
-  field('Machine à l\u2019arrêt', d.arret?'Oui':'Non'); field('Date d\u2019apparition', d.dateApparition||'—'); field('Code alarme', d.alarme);
-  doc.setFontSize(9.5); doc.setTextColor(110); doc.text('Description', marginX, y); y += 5;
-  doc.setTextColor(20);
-  const lines = doc.splitTextToSize(d.panne||'', 210-marginX*2);
-  doc.text(lines, marginX, y); y += lines.length*5 + 4;
-
-  doc.setFontSize(8); doc.setTextColor(150);
-  doc.text(`Document généré le ${fmtDateLong(iso(new Date()))} — à joindre à l\u2019email envoyé.`, marginX, 285);
-
-  const filename = `demande-intervention-${(d.serial||'machine').replace(/[^a-zA-Z0-9-]/g,'_')}.pdf`;
-  doc.save(filename);
-  return filename;
 }
 function buildRequestFormMailtoFromInputs(){
   const p = new URLSearchParams(window.location.search);
@@ -4440,9 +4420,7 @@ N° de série : ${serial}
 Machine à l'arrêt : ${arret?'Oui':'Non'}
 Date d'apparition : ${dateApparition}
 Code alarme : ${alarme}
-Description : ${panne}
-
---- PDF récapitulatif téléchargé — pensez à le joindre à cet email avant de l'envoyer ---`;
+Description : ${panne}`;
   const ccEmail = p.get('cc');
   const ccParam = ccEmail ? `&cc=${encodeURIComponent(ccEmail)}` : '';
   return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}${ccParam}&body=${encodeURIComponent(body)}`;
@@ -4450,23 +4428,10 @@ Description : ${panne}
 function bindRequestFormEvents(){
   document.getElementById('rf-submit').addEventListener('click', ()=>{
     const errorBox = document.getElementById('rf-error');
-    const data = collectRequestFormData();
-    if(!data.ok){ errorBox.style.display = 'block'; document.getElementById('rf-panne').focus(); return; }
-    errorBox.style.display = 'none';
     const link = buildRequestFormMailtoFromInputs();
-    if(!link) return;
-    const pdfFilename = generateRequestFormPDF(data);
-    if(!pdfFilename){
-      // le PDF n'a pas pu être généré (pas de connexion au chargement, bloqueur...) — on prévient
-      // clairement plutôt que de laisser croire qu'il a été joint, et on envoie quand même l'email.
-      const btn = document.getElementById('rf-submit');
-      const warn = document.createElement('div');
-      warn.style.cssText = 'font-size:11px; color:#B4562F; margin-top:8px; text-align:center;';
-      warn.textContent = "Le PDF n'a pas pu être généré (connexion instable) — l'email s'envoie quand même, sans pièce jointe.";
-      btn.insertAdjacentElement('afterend', warn);
-    }
-    // petit délai pour laisser le téléchargement du PDF démarrer avant de basculer vers l'email
-    setTimeout(()=>{ window.location.href = link; }, pdfFilename ? 400 : 0);
+    if(!link){ errorBox.style.display = 'block'; document.getElementById('rf-panne').focus(); return; }
+    errorBox.style.display = 'none';
+    window.location.href = link;
   });
 }
 /* ================= SCANNER QR PAR CAMÉRA (dans l'application, sans appareil photo externe) ================= */
@@ -4580,7 +4545,7 @@ function renderTechContent(){
   if(techView==='equipe'){
     document.getElementById('content').innerHTML = viewPlanning(true);
     bindPlanningControls();
-    bindGanttDragDrop(true);
+    bindGanttDragDrop();
     return;
   }
   if(techView==='frais'){
@@ -5056,7 +5021,6 @@ function renderInternalShell(){
           <div class="ci-name">${escapeHtml(me.name)}</div>
           <div class="ci-contract">${roleLabel}</div>
         </div>
-        <div class="sidebar-scroll">
         ${navHasOverview? `<div class="nav-group-label">Vue d'ensemble</div>` : ''}
         ${allowed.includes('dashboard')? `<div class="nav-item ${currentView==='dashboard'?'active':''}" data-view="dashboard">${icon('gear')} Tableau de bord</div>` : ''}
         ${navHasOps? `<div class="nav-group-label">Opérations</div>` : ''}
@@ -5078,7 +5042,6 @@ function renderInternalShell(){
         ${allowed.includes('notes_frais')? `<div class="nav-item ${currentView==='notes_frais'?'active':''}" data-view="notes_frais">${icon('inbox')} Notes de frais ${pendingExpenses?`<span class="badge">${pendingExpenses}</span>`:''}</div>` : ''}
         ${allowed.includes('mes_notes_frais')? `<div class="nav-item ${currentView==='mes_notes_frais'?'active':''}" data-view="mes_notes_frais">${icon('inbox')} Mes notes de frais</div>` : ''}
         ${allowed.includes('demandes_conge')? `<div class="nav-item ${currentView==='demandes_conge'?'active':''}" data-view="demandes_conge">${icon('calendar')} Demandes de congé ${pendingConges?`<span class="badge">${pendingConges}</span>`:''}</div>` : ''}
-        </div>
         <div class="sidebar-foot">
           <span class="logout-link" id="internal-logout" style="color:#8FB7AE; margin-bottom:8px; display:flex;">${icon('logout')} Se déconnecter</span>
           ${me.role==='admin'? `<span class="reset-link" id="reset-data">Réinitialiser les données</span>` : ''}
@@ -5944,13 +5907,16 @@ function viewPlanning(readOnly){
     return pulseHeights.map((h,i)=>`<span class="${i<litCount?'on':''}" style="height:${h}px;"></span>`).join('');
   }
   ganttDays.forEach((d,i)=>{
-    cellsHtml += `<div class="gantt-daycell-head ${isWeekend(d)?'weekend':''} ${i===todayIdx?'today':''}" style="grid-column:${2+i}; grid-row:1;">
-      ${d.toLocaleDateString('fr-FR',{weekday:'short'}).replace('.','')}<span class="dnum">${d.getDate()}</span>
+    const showMonth = i===0 || d.getDate()===1;
+    const isMonday = d.getDay()===1;
+    cellsHtml += `<div class="gantt-daycell-head ${isWeekend(d)?'weekend':''} ${i===todayIdx?'today':''} ${isMonday?'week-start':''}" style="grid-column:${2+i}; grid-row:1;">
+      <div class="dh-top">${showMonth?`<span class="dh-month">${d.toLocaleDateString('fr-FR',{month:'long'})}</span>`:''}${isMonday?`<span class="dh-week">${isoWeekNumber(d)}</span>`:''}</div>
+      <span class="dh-label">${DOW_LETTERS[d.getDay()]} <span class="dnum">${d.getDate()}</span></span>
       <div class="day-pulse" title="${dayLoads[i]} intervention(s) ce jour">${pulseBarsHtml(dayLoads[i])}</div>
     </div>`;
   });
 
-  const rowHeights = ['44px'];
+  const rowHeights = ['54px'];
   let rowCounter = 2;
   const techRowMap = {};
 
@@ -5997,7 +5963,7 @@ function viewPlanning(readOnly){
       g.techs.forEach(t=>{
         const laneCount = (techLaneInfo[t.id] && techLaneInfo[t.id].laneCount) || 1;
         const rowStart = rowCounter;
-        for(let i=0;i<laneCount;i++){ rowHeights.push('46px'); rowCounter++; }
+        for(let i=0;i<laneCount;i++){ rowHeights.push(laneCount===1?'60px':'50px'); rowCounter++; }
         techRowMap[t.id] = { startRow: rowStart, laneCount };
         const techLoadCount = state.interventions.filter(iv=> iv.status!=='terminee' && ivAssignedTo(iv,t.id) && iv.plannedDate && iv.plannedDate>=iso(ganttDays[0]) && iv.plannedDate<=iso(ganttDays[numDays-1])).length;
         const techLoadPct = Math.min(100, Math.round((techLoadCount / Math.max(1, numDays*0.9)) * 100));
@@ -6009,7 +5975,7 @@ function viewPlanning(readOnly){
         </div>`;
         ganttDays.forEach((d,i)=>{
           for(let laneIdx=0; laneIdx<laneCount; laneIdx++){
-            cellsHtml += `<div class="gantt-daybg ${isWeekend(d)?'weekend':''} ${i===todayIdx?'today-col':''}" data-tech="${t.id}" data-date="${iso(d)}" data-lane="${laneIdx}" style="grid-column:${2+i}; grid-row:${rowStart+laneIdx};"><span class="slot-hint top">M</span><span class="slot-hint bottom">AM</span></div>`;
+            cellsHtml += `<div class="gantt-daybg ${isWeekend(d)?'weekend':''} ${i===todayIdx?'today-col':''}" data-tech="${t.id}" data-date="${iso(d)}" data-lane="${laneIdx}" style="grid-column:${2+i}; grid-row:${rowStart+laneIdx};"></div>`;
           }
         });
       });
@@ -7349,17 +7315,18 @@ async function generateExpensePDF(report){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'landscape' });
   const pageW = 297, marginX = 10;
-  let y = 9;
-  try{ doc.addImage(LOGO_DATA_URI, 'PNG', marginX, y, 28, 3.8); }catch(e){}
-  doc.setFontSize(14); doc.setFont(undefined,'bold'); doc.setTextColor(20);
-  doc.text('FEUILLE DE FRAIS', pageW/2, y+4.5, { align:'center' });
-  y += 10;
-  doc.setFontSize(9); doc.setFont(undefined,'normal'); doc.setTextColor(60);
+  let y = 10;
+  try{ doc.addImage(LOGO_DATA_URI, 'PNG', marginX, y, 30, 4); }catch(e){}
+  doc.setFontSize(15); doc.setFont(undefined,'bold'); doc.setTextColor(20);
+  doc.text('FEUILLE DE FRAIS', pageW/2, y+5, { align:'center' });
+  y += 12;
+  doc.setFontSize(9.5); doc.setFont(undefined,'normal'); doc.setTextColor(60);
   doc.text(`Technicien : ${report.technicianName}`, marginX, y);
-  doc.text(`Secteur : ${secteurLabel(report.secteurId)}`, 110, y);
-  doc.text(`Semaine du ${fmtDateLong(report.weekStart)}`, 190, y);
-  doc.text(`Km début semaine : ${report.kmDebutSemaine||0} km`, 250, y);
-  y += 5;
+  doc.text(`Secteur : ${secteurLabel(report.secteurId)}`, 120, y);
+  doc.text(`Semaine du ${fmtDateLong(report.weekStart)}`, 210, y);
+  y += 6;
+  doc.text(`Kilométrage début de semaine : ${report.kmDebutSemaine||0} km`, marginX, y);
+  y += 6;
 
   // ---- Grille façon Excel : catégories en lignes, jours en colonnes ----
   const dayHeaders = report.days.map((d,i)=> `${WEEK_DAYS[i].label}\n${fmtDate(new Date(d.date+'T00:00:00'))}`);
@@ -7387,9 +7354,9 @@ async function generateExpensePDF(report){
   doc.autoTable({
     startY: y,
     head, body, theme:'grid',
-    styles:{ fontSize:6.7, cellPadding:1, textColor:[40,40,40], lineColor:[195,195,195], lineWidth:0.1, valign:'middle' },
-    headStyles:{ fillColor:[18,49,63], textColor:255, fontStyle:'bold', halign:'center', fontSize:6.7 },
-    columnStyles:{ 0:{ cellWidth:36, fontStyle:'bold', halign:'left' } },
+    styles:{ fontSize:7.5, cellPadding:1.7, textColor:[40,40,40], lineColor:[195,195,195], lineWidth:0.1, valign:'middle' },
+    headStyles:{ fillColor:[18,49,63], textColor:255, fontStyle:'bold', halign:'center', fontSize:7.5 },
+    columnStyles:{ 0:{ cellWidth:40, fontStyle:'bold', halign:'left' } },
     margin:{ left:marginX, right:marginX },
     didParseCell: (data)=>{
       if(data.section==='body'){
@@ -7403,30 +7370,36 @@ async function generateExpensePDF(report){
       }
     },
   });
+  y = doc.lastAutoTable.finalY + 10;
 
-  // Signatures ancrées à une position fixe proche du bas de la page (plutôt que juste après le
-  // tableau) : avec les 17 catégories réelles, le tableau à lui seul frôle déjà le bas de la page
-  // — un ancrage fixe garantit qu'elles restent toujours sur la même page que le tableau, avec un
-  // espacement constant et net, quel que soit le nombre exact de lignes remplies pour ce technicien.
-  const pageH = 210; // hauteur d'une page A4 paysage, en mm
-  const sigBlockHeight = 34;
-  const sigTop = Math.max(doc.lastAutoTable.finalY + 6, pageH - sigBlockHeight - 8);
-  let y2 = sigTop;
+  const pageBottom = 195;
+  if(y > pageBottom){ doc.addPage(); y = 15; }
   doc.setFontSize(9); doc.setFont(undefined,'bold'); doc.setTextColor(20);
-  doc.text('Signatures', marginX, y2); y2 += 4;
+  doc.text('Circuit de validation', marginX, y); y += 6;
+  doc.setFont(undefined,'normal'); doc.setTextColor(80);
+  const actionLabels = { soumise:'Soumise', validee:'Validée', rejetee:'Rejetée' };
+  (report.history||[]).forEach(h=>{
+    if(y>pageBottom){ doc.addPage(); y=15; }
+    doc.text(`${actionLabels[h.action]||h.action} par ${h.by} (${h.role}) — ${new Date(h.at).toLocaleString('fr-FR')}`, marginX, y); y += 5;
+  });
+  y += 6;
+
+  if(y > pageBottom-20){ doc.addPage(); y = 15; }
+  doc.setFontSize(9); doc.setFont(undefined,'bold'); doc.setTextColor(20);
+  doc.text('Signatures', marginX, y); y += 4;
+  const sigTop = y;
   doc.setDrawColor(150); doc.setFont(undefined,'normal'); doc.setFontSize(8.5); doc.setTextColor(80);
   if(report.signatureTechnicien){
-    try{ doc.addImage(report.signatureTechnicien, 'PNG', marginX, y2, 55, 18); }catch(e){}
+    try{ doc.addImage(report.signatureTechnicien, 'PNG', marginX, sigTop, 60, 22); }catch(e){}
   }
-  doc.line(marginX, y2+20, marginX+75, y2+20); doc.text('Technicien', marginX, y2+25);
+  doc.line(marginX, sigTop+24, marginX+80, sigTop+24); doc.text('Technicien', marginX, sigTop+29);
   // Signature automatique du responsable secteur Nord (Parinord) — tampon officiel fourni par l'entreprise
   const reportSecteurName = (secteurLabel(report.secteurId)||'').toLowerCase();
   if(reportSecteurName.includes('nord')){
-    try{ doc.addImage(STAMP_RESPONSABLE_NORD_DATA_URI, 'PNG', marginX+95, y2-3, 40, 25.4); }catch(e){}
+    try{ doc.addImage(STAMP_RESPONSABLE_NORD_DATA_URI, 'PNG', marginX+100, sigTop-4, 45, 28.6); }catch(e){}
   }
-  doc.line(marginX+95, y2+20, marginX+170, y2+20); doc.text('Responsable technique', marginX+95, y2+25);
-  y = y2 + 30;
-  const pageBottom = 195;
+  doc.line(marginX+100, sigTop+24, marginX+180, sigTop+24); doc.text('Responsable technique', marginX+100, sigTop+29);
+  y = sigTop + 40;
 
   if(report.piecesJointes.length){
     if(y>pageBottom-10){ doc.addPage(); y=15; }
@@ -9289,7 +9262,7 @@ function adminSectionProtocoles(){
 const TOGGL_CREDS_KEY = 'gmao-toggl-plan-credentials-local';
 const THEME_PREF_KEY = 'gmao-planning-theme-local';
 function loadThemePref(){
-  try{ return localStorage.getItem(THEME_PREF_KEY) || 'dark'; }catch(e){ return 'dark'; }
+  try{ return localStorage.getItem(THEME_PREF_KEY) || 'light'; }catch(e){ return 'light'; }
 }
 function applyThemePref(){
   document.body.classList.toggle('tg-light', loadThemePref()==='light');
@@ -9354,14 +9327,6 @@ function adminSectionToggl(){
         </div>
         <div id="toggl-test-result" style="margin-top:14px;"></div>
         <div class="field-hint" style="margin-top:16px;">Cette première étape vérifie uniquement que la connexion fonctionne (jeton d'accès obtenu + informations de votre compte). L'import réel des données (équipes, tâches) dans le GMAO sera l'étape suivante, une fois la connexion confirmée.</div>
-      </div>
-      <div class="card section-gap" style="padding:18px 20px; margin-top:16px;">
-        <div class="section-title">${icon('calendar')} Importer un calendrier .ics depuis Toggl Plan</div>
-        <div class="field-hint" style="margin-top:0; margin-bottom:14px;">Plus simple que l'export JSON : dans Toggl Plan, utilisez l'option d'export ou d'abonnement au calendrier (souvent dans les réglages de l'équipe ou du planning) pour obtenir un fichier .ics, puis déposez-le ici. Crée les échéances avec leur date connue, sans technicien assigné (à répartir ensuite avec les outils ci-dessous) — ce format ne contient pas l'information de qui est affecté à quoi.</div>
-        <label style="margin-top:0;">Fichier .ics</label>
-        <input type="file" id="ics-import-file" accept=".ics,text/calendar">
-        <button class="btn btn-primary btn-sm" id="ics-import-analyze-btn" style="margin-top:12px;">Analyser</button>
-        <div id="ics-import-preview" style="margin-top:16px;"></div>
       </div>
       <div class="card section-gap" style="padding:18px 20px; margin-top:16px;">
         <div class="section-title">${icon('user')} Attribution rapide par secteur</div>
@@ -9608,107 +9573,6 @@ async function quickAssignBySecteur(secteurId){
   await saveState();
   logAudit('quick_assign_secteur', `${candidates.length} intervention(s) réparties entre ${secteurTechs.length} technicien(s) — ${secteurLabel(secteurId)}`);
   showToast(`${candidates.length} intervention(s) réparties${noDateCount?` — ${noDateCount} sans date restent à planifier manuellement`:''}`);
-  renderContent();
-}
-/* ---------------- Import d'un calendrier .ics (export/abonnement Toggl Plan) ----------------
-   Bien plus simple à obtenir qu'un export JSON (pas besoin des outils de développeur du
-   navigateur), mais ce format ne transporte pas l'information « qui est affecté » — seulement
-   la date et le nom de la tâche. On crée donc des échéances sans technicien, à répartir ensuite
-   avec les outils déjà en place plus bas sur cette page. */
-function parseICS(text){
-  const events = [];
-  const blocks = text.split('BEGIN:VEVENT').slice(1);
-  blocks.forEach(block=>{
-    const endIdx = block.indexOf('END:VEVENT');
-    const content = (endIdx>=0 ? block.slice(0,endIdx) : block)
-      .replace(/\r\n[ \t]/g, '') // déplie les lignes repliées selon la norme iCalendar
-      .replace(/\n[ \t]/g, '');
-    const lines = content.split(/\r?\n/);
-    let dtstart = null, summary = null, uid = null;
-    lines.forEach(line=>{
-      if(line.startsWith('DTSTART')){
-        const m = line.match(/(\d{8})/);
-        if(m) dtstart = `${m[1].slice(0,4)}-${m[1].slice(4,6)}-${m[1].slice(6,8)}`;
-      } else if(line.startsWith('SUMMARY:')){
-        summary = line.slice('SUMMARY:'.length).trim();
-      } else if(line.startsWith('UID:')){
-        uid = line.slice('UID:'.length).trim();
-      }
-    });
-    if(dtstart && summary) events.push({ dtstart, summary, uid });
-  });
-  return events;
-}
-let icsImportAnalysis = null;
-async function analyzeIcsImport(){
-  const previewBox = document.getElementById('ics-import-preview');
-  const file = document.getElementById('ics-import-file').files[0];
-  if(!file){ showToast('Merci de déposer un fichier .ics'); return; }
-  previewBox.innerHTML = `<div class="helper-note">Analyse en cours...</div>`;
-  try{
-    const text = await file.text();
-    const events = parseICS(text);
-    if(!events.length){ previewBox.innerHTML = `<div class="helper-note" style="color:#B23B3B;">Aucun événement trouvé dans ce fichier — vérifiez qu'il s'agit bien d'un export .ics valide.</div>`; return; }
-
-    const results = { toCreate:[], alreadyExists:0, noClientMatch:[], excludedLeave:0 };
-    const queuedKeys = new Set();
-    events.forEach(ev=>{
-      if(TOGGL_LEAVE_PATTERN.test(ev.summary)){ results.excludedLeave++; return; }
-      const parsed = parseTogglTaskName(ev.summary);
-      const cl = findBestClientMatch(parsed.client, state.clients);
-      if(!cl){ results.noClientMatch.push(ev.summary); return; }
-      const key = cl.id + '|' + ev.dtstart;
-      const already = state.interventions.some(iv=>iv.clientId===cl.id && iv.plannedDate===ev.dtstart);
-      if(already || queuedKeys.has(key)){ results.alreadyExists++; return; }
-      queuedKeys.add(key);
-      const m = machinesOf(cl.id)[0] || null;
-      results.toCreate.push({ client:cl, machine:m, date:ev.dtstart, summary:ev.summary });
-    });
-
-    icsImportAnalysis = results;
-    previewBox.innerHTML = `
-      <div class="card" style="padding:14px 16px; background:#FBFAF6;">
-        <div style="font-weight:700; margin-bottom:8px;">Aperçu de l'import</div>
-        <div class="helper-note" style="margin:0 0 4px;">✅ ${results.toCreate.length} échéance(s) qui seront créées, sans technicien</div>
-        <div class="helper-note" style="margin:0 0 4px;">↺ ${results.alreadyExists} déjà présente(s) dans le GMAO — ignorée(s)</div>
-        <div class="helper-note" style="margin:0 0 4px;">🏖️ ${results.excludedLeave} congé(s)/RTT exclu(s)</div>
-        <div class="helper-note" style="margin:0 0 4px; color:${results.noClientMatch.length?'#B23B3B':'inherit'};">⚠️ ${results.noClientMatch.length} tâche(s) sans client reconnu</div>
-        ${results.toCreate.some(r=>!r.machine) ? `<div class="helper-note" style="color:#B4562F;">Certains clients reconnus n'ont aucune machine enregistrée — ces lignes seront ignorées à la confirmation.</div>` : ''}
-        <button class="btn btn-primary btn-sm" id="ics-import-confirm-btn" style="margin-top:10px;" ${results.toCreate.length===0?'disabled':''}>Créer ${results.toCreate.length} échéance(s)</button>
-        ${results.noClientMatch.length ? `
-          <details style="margin-top:10px;"><summary style="cursor:pointer; font-size:12px; color:var(--ink-soft);">Voir les tâches sans client reconnu</summary>
-            <div style="margin-top:8px; font-size:11.5px; max-height:200px; overflow-y:auto;">
-              ${results.noClientMatch.map(n=>`<div>${escapeHtml(n)}</div>`).join('')}
-            </div>
-          </details>
-        ` : ''}
-      </div>
-    `;
-  }catch(e){
-    console.error(e);
-    previewBox.innerHTML = `<div class="helper-note" style="color:#B23B3B;">Erreur de lecture du fichier : ${escapeHtml(e.message||String(e))}</div>`;
-  }
-}
-async function confirmIcsImport(){
-  if(!icsImportAnalysis) return;
-  const toCreate = icsImportAnalysis.toCreate.filter(r=>r.machine);
-  if(!confirm(`Créer ${toCreate.length} échéance(s), sans technicien assigné ?`)) return;
-  toCreate.forEach(r=>{
-    state.interventions.push({
-      id:uid('iv'), clientId:r.client.id, machineId:r.machine.id, serial:r.machine.serial,
-      panne:`Échéance importée — ${r.summary}`, status:'creee', type:'preventive', priseEnCharge:'matachana',
-      piecesNecessaires:'', piecesListe:[], priorite:'normale', notesBureau:'',
-      technicianId:null, plannedDate:r.date, plannedEndDate:r.date, numeroAppel:null,
-      valide:false, valideeAt:null, valideePar:null,
-      piecesCommandees:false, piecesCommandeesAt:null, piecesCommandeesPar:null,
-      clientConfirmation:null, clientProposedDate:null, clientNote:null,
-      createdAt:iso(new Date()), createdBy:'import_revisions',
-    });
-  });
-  await saveState();
-  logAudit('ics_import', `${toCreate.length} échéance(s) importée(s) depuis un calendrier .ics Toggl Plan`);
-  showToast(`${toCreate.length} échéance(s) créée(s) — à répartir avec les outils ci-dessous`);
-  icsImportAnalysis = null;
   renderContent();
 }
 async function analyzeTogglImport(){
@@ -10667,10 +10531,6 @@ function bindContentEvents(){
     });
     document.getElementById('toggl-import-analyze-btn')?.addEventListener('click', analyzeTogglImport);
     document.getElementById('toggl-assign-analyze-btn')?.addEventListener('click', analyzeTogglAssign);
-    document.getElementById('ics-import-analyze-btn')?.addEventListener('click', analyzeIcsImport);
-    document.getElementById('ics-import-preview')?.addEventListener('click', (e)=>{
-      if(e.target && e.target.id==='ics-import-confirm-btn') confirmIcsImport();
-    });
     document.getElementById('quick-assign-secteur-btn')?.addEventListener('click', ()=>{
       const secteurId = document.getElementById('quick-assign-secteur-select').value;
       quickAssignBySecteur(secteurId);
@@ -11029,7 +10889,7 @@ function openQuickCreateCongeModal(technicianId, date){
     showToast('Congé/RTT enregistré sur le planning');
   };
 }
-function openQuickCreateInterventionModal(technicianId, date, defaultType){
+function openQuickCreateInterventionModal(technicianId, date){
   const allowedSecteurIds = getAllowedSecteurIds();
   const eligibleClients = allowedSecteurIds ? state.clients.filter(c=>allowedSecteurIds.includes(c.secteurId)) : state.clients;
   const t = tech(technicianId);
@@ -11052,10 +10912,10 @@ function openQuickCreateInterventionModal(technicianId, date, defaultType){
         <textarea id="qc-panne" placeholder="Ce qui a été signalé..."></textarea>
         <label>Type d'intervention</label>
         <select id="qc-type">
-          <option value="corrective" ${defaultType==='corrective'?'selected':''}>Corrective</option>
-          <option value="preventive" ${defaultType==='preventive'?'selected':''}>Préventive</option>
-          <option value="devis" ${defaultType==='devis'?'selected':''}>Devis</option>
-          <option value="installation" ${defaultType==='installation'?'selected':''}>Installation</option>
+          <option value="corrective">Corrective</option>
+          <option value="preventive">Préventive</option>
+          <option value="devis">Devis</option>
+          <option value="installation">Installation</option>
         </select>
       </div>
       <div class="modal-foot">
@@ -11144,7 +11004,7 @@ async function duplicateIntervention(ivId){
   renderContent();
   showToast('Intervention dupliquée sur le même créneau');
 }
-function bindGanttDragDrop(readOnly){
+function bindGanttDragDrop(){
   // draggable sources: backlog cards + placed bars
   document.querySelectorAll('.job-card[data-iv], .gantt-bar[data-iv]').forEach(el=>{
     el.addEventListener('dragstart', e=>{
@@ -11224,34 +11084,21 @@ function bindGanttDragDrop(readOnly){
       });
     }
     cell.addEventListener('click', async (e)=>{
-      if(pendingPlacementIvId){
-        const iv = state.interventions.find(i=>i.id===pendingPlacementIvId);
-        clearPlacementSelection();
-        if(!iv) return;
-        const rect = cell.getBoundingClientRect();
-        const clickedSlot = (e.clientY - rect.top) < rect.height/2 ? 'matin' : 'apres-midi';
-        const startDate = new Date(cell.dataset.date+'T00:00:00');
-        iv.technicianId = cell.dataset.tech;
-        iv.plannedDate = iso(startDate);
-        iv.plannedEndDate = iso(startDate);
-        iv.plannedSlot = clickedSlot;
-        if(cell.dataset.lane!==undefined) iv.laneHint = parseInt(cell.dataset.lane, 10);
-        if(iv.status!=='terminee') iv.status='planifiee';
-        await saveState(); renderTopbar(); renderContent();
-        showToast(`Intervention planifiée — ${SLOT_LABELS[clickedSlot]}`);
-        return;
-      }
-      // case vide, aucune sélection en attente : clic direct pour créer une intervention avec ce
-      // technicien et cette date déjà pré-remplis — apparaît immédiatement sur le planning, sans
-      // avoir besoin de glisser-déposer ensuite. Désactivé en lecture seule (ex. « Mon équipe »)
-      // et si cette case a déjà une intervention (on laisse alors sa propre barre gérer le clic).
-      if(readOnly) return;
-      const alreadyHasSomething = state.interventions.some(iv=>
-        ivAssignedTo(iv,cell.dataset.tech) && iv.status!=='terminee' &&
-        iv.plannedDate && iv.plannedDate<=cell.dataset.date && (iv.plannedEndDate||iv.plannedDate)>=cell.dataset.date
-      );
-      if(alreadyHasSomething) return;
-      openQuickCreateInterventionModal(cell.dataset.tech, cell.dataset.date, 'preventive');
+      if(!pendingPlacementIvId) return;
+      const iv = state.interventions.find(i=>i.id===pendingPlacementIvId);
+      clearPlacementSelection();
+      if(!iv) return;
+      const rect = cell.getBoundingClientRect();
+      const clickedSlot = (e.clientY - rect.top) < rect.height/2 ? 'matin' : 'apres-midi';
+      const startDate = new Date(cell.dataset.date+'T00:00:00');
+      iv.technicianId = cell.dataset.tech;
+      iv.plannedDate = iso(startDate);
+      iv.plannedEndDate = iso(startDate);
+      iv.plannedSlot = clickedSlot;
+      if(cell.dataset.lane!==undefined) iv.laneHint = parseInt(cell.dataset.lane, 10);
+      if(iv.status!=='terminee') iv.status='planifiee';
+      await saveState(); renderTopbar(); renderContent();
+      showToast(`Intervention planifiée — ${SLOT_LABELS[clickedSlot]}`);
     });
   });
 
